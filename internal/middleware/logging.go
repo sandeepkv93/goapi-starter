@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"log"
+	"goapi-starter/internal/logger"
 	"net/http"
 	"time"
 )
@@ -33,15 +33,18 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		wrapped := wrapResponseWriter(w)
 
+		// Create a child logger with request details
+		log := logger.Info().
+			Str("method", r.Method).
+			Str("path", r.URL.Path).
+			Str("remote_ip", r.RemoteAddr)
+
 		next.ServeHTTP(wrapped, r)
 
-		log.Printf(
-			"[%s] %s %s %d %s",
-			r.Method,
-			r.RequestURI,
-			r.RemoteAddr,
-			wrapped.status,
-			time.Since(start),
-		)
+		// Log the request details
+		log.
+			Int("status", wrapped.status).
+			Dur("duration", time.Since(start)).
+			Send()
 	})
 }
