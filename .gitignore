@@ -36,3 +36,5 @@ coverage/
 
 # Go modules cache (optional, recommended to keep outside the repo)
 /go/pkg/mod/
+
+air.log

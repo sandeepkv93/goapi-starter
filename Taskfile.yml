@@ -1,0 +1,64 @@
+version: '3'
+
+vars:
+  BINARY_NAME: goapi-starter
+
+tasks:
+  default:
+    cmds:
+      - task: run
+
+  ensure-db:
+    cmds:
+      - |
+        if ! docker ps | grep -q goapi-starter-container; then
+          echo "Starting database container..."
+          docker compose up -d
+          echo "Waiting for database to be ready..."
+          sleep 5
+        else
+          echo "Database is already running"
+        fi
+
+  build:
+    cmds:
+      - go build -o bin/{{.BINARY_NAME}} cmd/api/main.go
+    sources:
+      - ./**/*.go
+    generates:
+      - bin/{{.BINARY_NAME}}
+
+  run:
+    deps: [ensure-db]
+    cmds:
+      - go run cmd/api/main.go
+    desc: Run the application
+
+  dev:
+    deps: [ensure-db]
+    cmds:
+      - air
+    desc: Run the application with hot reload (requires air)
+
+  clean:
+    cmds:
+      - rm -rf bin
+    desc: Clean build files
+
+  docker-clean:
+    cmds:
+      - docker compose down -v
+    desc: Stop and remove docker containers and volumes
+
+  test:
+    cmds:
+      - go test -v ./...
+    desc: Run tests
+
+  install-tools:
+    cmds:
+      - |
+        if ! command -v air &> /dev/null; then
+          go install github.com/air-verse/air@latest
+        fi
+    desc: Install development tools 

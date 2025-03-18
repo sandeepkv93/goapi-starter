@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/database"
 	"goapi-starter/internal/models"
 	"goapi-starter/internal/routes"
-	"fmt"
 	"net/http"
 )
 

@@ -2,11 +2,11 @@ version: '3.8'
 services:
   db:
     image: postgres:15
-    container_name: cursor_experiment_db
+    container_name: goapi-starter-container
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: cursor_experiment
+      POSTGRES_DB: goapi-starter-db
     ports:
       - '5432:5432'
     volumes:

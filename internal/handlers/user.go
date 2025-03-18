@@ -14,4 +14,4 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Get user"))
-} 
+}
