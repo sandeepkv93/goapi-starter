@@ -11,9 +11,9 @@ tasks:
   ensure-db:
     cmds:
       - |
-        if ! docker ps | grep -q goapi-starter-container; then
+        if ! docker ps | grep -q goapi_starter_db; then
           echo "Starting database container..."
-          docker compose up -d
+          docker compose up -d db
           echo "Waiting for database to be ready..."
           sleep 5
         else
@@ -32,7 +32,7 @@ tasks:
     deps: [ensure-db]
     cmds:
       - go run cmd/api/main.go
-    desc: Run the application
+    desc: Run the application locally
 
   dev:
     deps: [ensure-db]
@@ -40,15 +40,35 @@ tasks:
       - air
     desc: Run the application with hot reload (requires air)
 
-  clean:
+  docker-build:
     cmds:
-      - rm -rf bin
-    desc: Clean build files
+      - docker compose build
+    desc: Build Docker images
+
+  docker-run:
+    cmds:
+      - docker compose up -d
+    desc: Run all services in Docker
+
+  docker-logs:
+    cmds:
+      - docker compose logs -f
+    desc: Follow Docker logs
+
+  docker-stop:
+    cmds:
+      - docker compose stop
+    desc: Stop Docker containers
 
   docker-clean:
     cmds:
       - docker compose down -v
-    desc: Stop and remove docker containers and volumes
+    desc: Stop and remove Docker containers and volumes
+
+  clean:
+    cmds:
+      - rm -rf bin
+    desc: Clean build files
 
   test:
     cmds:
