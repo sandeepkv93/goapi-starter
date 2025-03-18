@@ -1,7 +1,7 @@
 package routes
 
 import (
-	customMiddleware "cursor-experiment-1/internal/middleware"
+	customMiddleware "goapi-starter/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

@@ -1,9 +1,9 @@
 package services
 
 import (
-	"cursor-experiment-1/internal/config"
-	"cursor-experiment-1/internal/database"
-	"cursor-experiment-1/internal/models"
+	"goapi-starter/internal/config"
+	"goapi-starter/internal/database"
+	"goapi-starter/internal/models"
 	"errors"
 	"time"
 

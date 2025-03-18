@@ -1,7 +1,7 @@
 package database
 
 import (
-	"cursor-experiment-1/internal/config"
+	"goapi-starter/internal/config"
 	"fmt"
 	"log"
 

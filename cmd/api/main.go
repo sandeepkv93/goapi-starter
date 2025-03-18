@@ -1,10 +1,10 @@
 package main
 
 import (
-	"cursor-experiment-1/internal/config"
-	"cursor-experiment-1/internal/database"
-	"cursor-experiment-1/internal/models"
-	"cursor-experiment-1/internal/routes"
+	"goapi-starter/internal/config"
+	"goapi-starter/internal/database"
+	"goapi-starter/internal/models"
+	"goapi-starter/internal/routes"
 	"fmt"
 	"net/http"
 )

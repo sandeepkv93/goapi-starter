@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"cursor-experiment-1/internal/config"
+	"goapi-starter/internal/config"
 	"net/http"
 	"strings"
 

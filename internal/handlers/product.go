@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"cursor-experiment-1/internal/database"
-	"cursor-experiment-1/internal/models"
-	"cursor-experiment-1/internal/utils"
+	"goapi-starter/internal/database"
+	"goapi-starter/internal/models"
+	"goapi-starter/internal/utils"
 	"encoding/json"
 	"net/http"
 

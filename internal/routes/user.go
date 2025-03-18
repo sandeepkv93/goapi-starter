@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"cursor-experiment-1/internal/handlers"
+	"goapi-starter/internal/handlers"
 
 	"github.com/go-chi/chi/v5"
 )
