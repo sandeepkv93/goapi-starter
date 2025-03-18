@@ -18,19 +18,19 @@ COPY . .
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/api cmd/api/main.go
 
-# Final stage
-FROM alpine:latest
+# Final stage using distroless
+FROM gcr.io/distroless/static-debian12:nonroot
 
 WORKDIR /app
-
-# Add ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates
 
 # Copy the binary from builder
 COPY --from=builder /app/bin/api .
 
 # Copy the .env file
 COPY .env .
+
+# Use nonroot user (provided by distroless)
+USER nonroot:nonroot
 
 # Expose port
 EXPOSE 3000
