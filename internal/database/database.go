@@ -1,6 +1,7 @@
 package database
 
 import (
+	"cursor-experiment-1/internal/config"
 	"fmt"
 	"log"
 
@@ -11,7 +12,15 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	dsn := "host=localhost user=postgres password=postgres dbname=cursor_experiment port=5432 sslmode=disable"
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		config.AppConfig.Database.Host,
+		config.AppConfig.Database.User,
+		config.AppConfig.Database.Password,
+		config.AppConfig.Database.DBName,
+		config.AppConfig.Database.Port,
+		config.AppConfig.Database.SSLMode,
+	)
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})

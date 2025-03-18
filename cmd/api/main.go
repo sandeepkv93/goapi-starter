@@ -1,13 +1,18 @@
 package main
 
 import (
+	"cursor-experiment-1/internal/config"
 	"cursor-experiment-1/internal/database"
 	"cursor-experiment-1/internal/models"
 	"cursor-experiment-1/internal/routes"
+	"fmt"
 	"net/http"
 )
 
 func main() {
+	// Load configuration
+	config.LoadConfig()
+
 	// Initialize database
 	database.InitDB()
 
@@ -16,6 +21,7 @@ func main() {
 
 	router := routes.SetupRouter()
 
-	println("Server starting on :3000")
-	http.ListenAndServe(":3000", router)
+	port := config.AppConfig.Server.Port
+	fmt.Printf("Server starting on :%s\n", port)
+	http.ListenAndServe(":"+port, router)
 }

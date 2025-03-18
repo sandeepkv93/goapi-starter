@@ -26,7 +26,7 @@ func GenerateTokenPair(user models.User) (*models.TokenResponse, error) {
 	return &models.TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		ExpiresIn:    config.AccessTokenExpiry,
+		ExpiresIn:    config.AppConfig.JWT.AccessExpiry,
 	}, nil
 }
 
@@ -34,22 +34,22 @@ func generateAccessToken(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
-		"exp":      time.Now().Add(time.Second * time.Duration(config.AccessTokenExpiry)).Unix(),
+		"exp":      time.Now().Add(time.Second * time.Duration(config.AppConfig.JWT.AccessExpiry)).Unix(),
 		"type":     "access",
 	})
 
-	return token.SignedString([]byte(config.AccessTokenSecret))
+	return token.SignedString([]byte(config.AppConfig.JWT.AccessSecret))
 }
 
 func generateRefreshToken(user models.User) (string, error) {
 	// Generate refresh token string
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Second * time.Duration(config.RefreshTokenExpiry)).Unix(),
+		"exp":     time.Now().Add(time.Second * time.Duration(config.AppConfig.JWT.RefreshExpiry)).Unix(),
 		"type":    "refresh",
 	})
 
-	refreshTokenString, err := token.SignedString([]byte(config.RefreshTokenSecret))
+	refreshTokenString, err := token.SignedString([]byte(config.AppConfig.JWT.RefreshSecret))
 	if err != nil {
 		return "", err
 	}
@@ -58,7 +58,7 @@ func generateRefreshToken(user models.User) (string, error) {
 	refreshToken := models.RefreshToken{
 		UserID:    user.ID,
 		Token:     refreshTokenString,
-		ExpiresAt: time.Now().Add(time.Second * time.Duration(config.RefreshTokenExpiry)),
+		ExpiresAt: time.Now().Add(time.Second * time.Duration(config.AppConfig.JWT.RefreshExpiry)),
 	}
 
 	if result := database.DB.Create(&refreshToken); result.Error != nil {
@@ -77,7 +77,7 @@ func ValidateRefreshToken(tokenString string) (*models.User, error) {
 
 	// Validate JWT
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.RefreshTokenSecret), nil
+		return []byte(config.AppConfig.JWT.RefreshSecret), nil
 	})
 
 	if err != nil || !token.Valid {

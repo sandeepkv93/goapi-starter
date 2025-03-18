@@ -25,7 +25,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		tokenStr := bearerToken[1]
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.AccessTokenSecret), nil
+			return []byte(config.AppConfig.JWT.AccessSecret), nil
 		})
 
 		if err != nil || !token.Valid {
