@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/database"
 	"goapi-starter/internal/models"
 	"goapi-starter/internal/services"
 	"goapi-starter/internal/utils"
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -146,8 +146,8 @@ func generateJWT(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
-		"exp":      time.Now().Add(time.Second * time.Duration(config.AccessTokenExpiry)).Unix(),
+		"exp":      time.Now().Add(time.Second * time.Duration(config.AppConfig.JWT.AccessExpiry)).Unix(),
 	})
 
-	return token.SignedString([]byte(config.AccessTokenSecret))
+	return token.SignedString([]byte(config.AppConfig.JWT.AccessSecret))
 }
