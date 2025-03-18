@@ -1,0 +1,38 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of `go build`
+/build/
+/bin/
+/tmp/
+
+# Go workspace stuff
+pkg/
+
+# Dependency directories (adjust if you use vendoring)
+vendor/
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.iml
+
+# Logs and databases
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+# Environment files
+.env
+.env.local
+
+# Coverage and test data
+*.out
+coverage/
+
+# Go modules cache (optional, recommended to keep outside the repo)
+/go/pkg/mod/
