@@ -1,9 +1,9 @@
 package database
 
 import (
-	"goapi-starter/internal/config"
 	"fmt"
-	"log"
+	"goapi-starter/internal/config"
+	"goapi-starter/internal/logger"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,8 +25,8 @@ func InitDB() {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		logger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
-	fmt.Println("Successfully connected to database")
+	logger.Info().Msg("Successfully connected to database")
 }

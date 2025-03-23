@@ -12,7 +12,6 @@ func SetupRouter() *chi.Mux {
 
 	// Global middleware
 	r.Use(customMiddleware.LoggingMiddleware)
-	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
 	// Public routes

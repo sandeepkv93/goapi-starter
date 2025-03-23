@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"goapi-starter/internal/config"
+	"goapi-starter/internal/logger"
+	"goapi-starter/internal/utils"
 	"net/http"
 	"strings"
 
@@ -13,13 +15,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
+			logger.Warn().Msg("Missing authorization header")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Authorization header required")
 			return
 		}
 
 		bearerToken := strings.Split(authHeader, " ")
 		if len(bearerToken) != 2 {
-			http.Error(w, "Invalid token format", http.StatusUnauthorized)
+			logger.Warn().Msg("Invalid token format")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token format")
 			return
 		}
 
@@ -29,13 +33,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			logger.Warn().Err(err).Msg("Invalid token")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			logger.Warn().Msg("Invalid token claims")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token claims")
 			return
 		}
 
