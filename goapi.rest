@@ -1,0 +1,71 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Sign Up
+POST {{baseUrl}}/api/auth/signup
+Content-Type: {{contentType}}
+
+{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### Sign In
+# @name signin
+POST {{baseUrl}}/api/auth/signin
+Content-Type: {{contentType}}
+
+{
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### Set auth tokens from signin response
+@accessToken = {{signin.response.body.data.tokens.access_token}}
+@refreshToken = {{signin.response.body.data.tokens.refresh_token}}
+
+### Refresh Token
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: {{contentType}}
+
+{
+    "refresh_token": "{{refreshToken}}"
+}
+
+### List All Products
+GET {{baseUrl}}/api/products
+Authorization: Bearer {{accessToken}}
+
+### Create Product
+POST {{baseUrl}}/api/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "name": "Test Product",
+    "description": "A test product description",
+    "price": 29.99,
+    "stock": 100
+}
+
+### Get Product by ID
+@productId = bfb02d88-990e-46f6-ac4a-aad3eb0d490d
+GET {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{accessToken}}
+
+### Update Product
+PUT {{baseUrl}}/api/products/{{productId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+    "name": "Updated Product",
+    "description": "Updated product description",
+    "price": 39.99,
+    "stock": 150
+}
+
+### Delete Product
+DELETE {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{accessToken}} 
