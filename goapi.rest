@@ -69,3 +69,7 @@ Authorization: Bearer {{accessToken}}
 ### Delete Product
 DELETE {{baseUrl}}/api/products/{{productId}}
 Authorization: Bearer {{accessToken}} 
+
+
+### Metrics Endpoint
+GET {{baseUrl}}/metrics

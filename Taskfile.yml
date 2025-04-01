@@ -81,4 +81,24 @@ tasks:
         if ! command -v air &> /dev/null; then
           go install github.com/air-verse/air@latest
         fi
-    desc: Install development tools 
+    desc: Install development tools
+
+  prometheus-up:
+    cmds:
+      - docker compose up -d prometheus
+    desc: Start Prometheus container
+
+  grafana-up:
+    cmds:
+      - docker compose up -d grafana
+    desc: Start Grafana container
+
+  monitoring-up:
+    cmds:
+      - docker compose up -d prometheus grafana
+    desc: Start all monitoring containers
+
+  monitoring-logs:
+    cmds:
+      - docker compose logs -f prometheus grafana
+    desc: Follow monitoring logs 

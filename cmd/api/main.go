@@ -26,6 +26,7 @@ func main() {
 
 	port := config.AppConfig.Server.Port
 	logger.Info().Msgf("Server starting on :%s", port)
+	logger.Info().Msg("Metrics available at /metrics")
 
 	if err := http.ListenAndServe(":"+port, router); err != nil {
 		logger.Fatal().Err(err).Msg("Server failed to start")

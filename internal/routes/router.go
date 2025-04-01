@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func SetupRouter() *chi.Mux {
@@ -12,7 +13,11 @@ func SetupRouter() *chi.Mux {
 
 	// Global middleware
 	r.Use(customMiddleware.LoggingMiddleware)
+	r.Use(customMiddleware.PrometheusMiddleware)
 	r.Use(middleware.Recoverer)
+
+	// Metrics endpoint
+	r.Handle("/metrics", promhttp.Handler())
 
 	// Public routes
 	r.Mount("/api/auth", AuthRoutes())

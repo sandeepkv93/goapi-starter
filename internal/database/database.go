@@ -29,4 +29,7 @@ func InitDB() {
 	}
 
 	logger.Info().Msg("Successfully connected to database")
+
+	// Add metrics callbacks
+	AddMetricsCallbacks()
 }
