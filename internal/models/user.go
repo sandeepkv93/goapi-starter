@@ -15,8 +15,3 @@ type User struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
-
-type AuthResponse struct {
-	Token string `json:"token"`
-	User  User   `json:"user"`
-}
