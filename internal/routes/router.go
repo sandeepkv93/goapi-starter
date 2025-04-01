@@ -31,6 +31,9 @@ func SetupRouter() *chi.Mux {
 	// Metrics endpoint
 	r.Handle("/metrics", promhttp.Handler())
 
+	// Health check endpoint
+	r.Mount("/health", HealthRoutes())
+
 	// Public routes
 	r.Mount("/api/auth", AuthRoutes())
 
