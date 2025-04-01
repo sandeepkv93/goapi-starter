@@ -91,6 +91,32 @@ tasks:
       - docker compose up --build -d
     desc: Stop and remove Docker containers and volumes and start them again
 
+  docker-dev:
+    cmds:
+      - docker compose -f docker-compose.dev.yml up -d
+    desc: Run all services in Docker for local development
+
+  docker-dev-stop:
+    cmds:
+      - docker compose -f docker-compose.dev.yml down
+    desc: Stop all services in Docker for local development
+
+  docker-dev-logs:
+    cmds:
+      - docker compose -f docker-compose.dev.yml logs -f
+    desc: Follow Docker logs for local development
+
+  docker-dev-clean:
+    cmds:
+      - docker compose -f docker-compose.dev.yml down -v
+    desc: Stop and remove Docker containers and volumes for local development
+
+  docker-dev-run:
+    cmds:
+      - docker compose -f docker-compose.dev.yml up --build -d
+      - task: run
+    desc: Run all services in Docker for local development
+
   # Monitoring tasks
   prometheus-up:
     cmds:
