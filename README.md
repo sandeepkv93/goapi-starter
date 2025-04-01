@@ -125,11 +125,11 @@ goapi-starter/
 
 ### Products
 
-- `GET /api/dummy-products`: List all products
-- `POST /api/dummy-products`: Create a new product
-- `GET /api/dummy-products/{id}`: Get a specific product
-- `PUT /api/dummy-products/{id}`: Update a product
-- `DELETE /api/dummy-products/{id}`: Delete a product
+- `GET /api/dummy-products`: List all the dummy products
+- `POST /api/dummy-products`: Create a new dummy product
+- `GET /api/dummy-products/{id}`: Get a specific dummy product
+- `PUT /api/dummy-products/{id}`: Update a dummy product
+- `DELETE /api/dummy-products/{id}`: Delete a dummy product
 
 ## 🛡️ Security Features
 
