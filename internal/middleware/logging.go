@@ -8,12 +8,13 @@ import (
 
 type responseWriter struct {
 	http.ResponseWriter
-	status      int
-	wroteHeader bool
+	status       int
+	wroteHeader  bool
+	bytesWritten int
 }
 
 func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{ResponseWriter: w}
+	return &responseWriter{ResponseWriter: w, status: http.StatusOK}
 }
 
 func (rw *responseWriter) Status() int {
@@ -28,23 +29,53 @@ func (rw *responseWriter) WriteHeader(code int) {
 	}
 }
 
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	if !rw.wroteHeader {
+		rw.WriteHeader(http.StatusOK)
+	}
+	n, err := rw.ResponseWriter.Write(b)
+	rw.bytesWritten += n
+	return n, err
+}
+
+func (rw *responseWriter) BytesWritten() int {
+	return rw.bytesWritten
+}
+
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		wrapped := wrapResponseWriter(w)
 
-		// Create a child logger with request details
-		log := logger.Info().
+		// Log request details before processing
+		logger.Debug().
 			Str("method", r.Method).
 			Str("path", r.URL.Path).
-			Str("remote_ip", r.RemoteAddr)
+			Str("remote_ip", r.RemoteAddr).
+			Str("user_agent", r.UserAgent()).
+			Msg("Request received")
 
 		next.ServeHTTP(wrapped, r)
 
+		duration := time.Since(start)
+
+		// Choose log level based on status code
+		logEvent := logger.Info()
+		if wrapped.status >= 400 && wrapped.status < 500 {
+			logEvent = logger.Warn()
+		} else if wrapped.status >= 500 {
+			logEvent = logger.Error()
+		}
+
 		// Log the request details
-		log.
+		logEvent.
+			Str("method", r.Method).
+			Str("path", r.URL.Path).
+			Str("remote_ip", r.RemoteAddr).
 			Int("status", wrapped.status).
-			Dur("duration", time.Since(start)).
-			Send()
+			Int("bytes", wrapped.BytesWritten()).
+			Dur("duration", duration).
+			Str("duration_human", duration.String()).
+			Msg("Request completed")
 	})
 }
