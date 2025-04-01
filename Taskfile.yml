@@ -65,6 +65,12 @@ tasks:
       - docker compose down -v
     desc: Stop and remove Docker containers and volumes
 
+  docker-clean-run:
+    cmds:
+      - docker compose down -v
+      - docker compose up --build -d
+    desc: Stop and remove Docker containers and volumes and start them again
+
   clean:
     cmds:
       - rm -rf bin

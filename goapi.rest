@@ -50,7 +50,7 @@ Authorization: Bearer {{accessToken}}
 }
 
 ### Get Product by ID
-@productId = bfb02d88-990e-46f6-ac4a-aad3eb0d490d
+@productId = 9cbc39aa-f8a8-4d38-a7cc-3902935328e3
 GET {{baseUrl}}/api/products/{{productId}}
 Authorization: Bearer {{accessToken}}
 

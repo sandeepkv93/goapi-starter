@@ -2,6 +2,7 @@ package routes
 
 import (
 	"goapi-starter/internal/handlers"
+	"goapi-starter/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -9,11 +10,11 @@ import (
 func ProductRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", handlers.ListProducts)
-	r.Post("/", handlers.CreateProduct)
-	r.Get("/{id}", handlers.GetProduct)
-	r.Put("/{id}", handlers.UpdateProduct)
-	r.Delete("/{id}", handlers.DeleteProduct)
+	r.Get("/", utils.InstrumentHandler("ListProducts", handlers.ListProducts))
+	r.Post("/", utils.InstrumentHandler("CreateProduct", handlers.CreateProduct))
+	r.Get("/{id}", utils.InstrumentHandler("GetProduct", handlers.GetProduct))
+	r.Put("/{id}", utils.InstrumentHandler("UpdateProduct", handlers.UpdateProduct))
+	r.Delete("/{id}", utils.InstrumentHandler("DeleteProduct", handlers.DeleteProduct))
 
 	return r
 }
