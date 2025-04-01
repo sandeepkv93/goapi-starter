@@ -1,14 +1,25 @@
 package services
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/database"
 	"goapi-starter/internal/models"
-	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+// generateRandomString creates a random string for token uniqueness
+func generateRandomString(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
+}
 
 func GenerateTokenPair(user models.User) (*models.TokenResponse, error) {
 	// Generate access token
@@ -42,9 +53,16 @@ func generateAccessToken(user models.User) (string, error) {
 }
 
 func generateRefreshToken(user models.User) (string, error) {
-	// Generate refresh token string
+	// Generate a random component to ensure uniqueness
+	randomID, err := generateRandomString(16)
+	if err != nil {
+		return "", err
+	}
+
+	// Generate refresh token string with the random component
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
+		"jti":     randomID, // Add a unique JWT ID
 		"exp":     time.Now().Add(time.Second * time.Duration(config.AppConfig.JWT.RefreshExpiry)).Unix(),
 		"type":    "refresh",
 	})
