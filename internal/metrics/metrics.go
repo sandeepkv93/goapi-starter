@@ -81,6 +81,15 @@ var (
 		},
 		[]string{"operation", "result"},
 	)
+
+	// ErrorDetails provides more detailed error information
+	ErrorDetails = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "goapi_error_details_total",
+			Help: "Detailed breakdown of errors by type and reason",
+		},
+		[]string{"handler", "error_type", "error_reason"},
+	)
 )
 
 // RecordRequest records metrics for an HTTP request
@@ -105,6 +114,12 @@ func RecordHandlerExecution(handler string, status int, duration time.Duration) 
 // RecordHandlerError records a handler error
 func RecordHandlerError(handler, errorType string) {
 	HandlerErrors.WithLabelValues(handler, errorType).Inc()
+}
+
+// RecordDetailedError records a detailed error with reason
+func RecordDetailedError(handler, errorType, reason string) {
+	HandlerErrors.WithLabelValues(handler, errorType).Inc()
+	ErrorDetails.WithLabelValues(handler, errorType, reason).Inc()
 }
 
 // RecordBusinessOperation records a business operation

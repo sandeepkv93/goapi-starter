@@ -8,6 +8,7 @@ import (
 	"goapi-starter/internal/services"
 	"goapi-starter/internal/utils"
 	"net/http"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -120,7 +121,25 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	// Generate token pair
 	tokens, err := services.GenerateTokenPair(user)
 	if err != nil {
+		errorReason := "unknown"
+		if err.Error() != "" {
+			// Extract a simplified error reason
+			if strings.Contains(err.Error(), "duplicate key value") {
+				errorReason = "duplicate_token"
+			} else if strings.Contains(err.Error(), "database") {
+				errorReason = "database_error"
+			} else {
+				// Limit the error reason length to avoid cardinality explosion
+				if len(err.Error()) > 50 {
+					errorReason = err.Error()[:50]
+				} else {
+					errorReason = err.Error()
+				}
+			}
+		}
+
 		metrics.RecordHandlerError("SignIn", "token_generation_error")
+		metrics.RecordDetailedError("SignIn", "token_generation_error", errorReason)
 		metrics.BusinessOperations.WithLabelValues("signin", "failed").Inc()
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error generating tokens")
 		return
@@ -157,7 +176,26 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	// Validate refresh token and get user
 	user, err := services.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
+		errorReason := "unknown"
+		if err.Error() != "" {
+			if strings.Contains(err.Error(), "expired") {
+				errorReason = "token_expired"
+			} else if strings.Contains(err.Error(), "not found") {
+				errorReason = "token_not_found"
+			} else if strings.Contains(err.Error(), "invalid") {
+				errorReason = "token_invalid"
+			} else {
+				// Limit the error reason length to avoid cardinality explosion
+				if len(err.Error()) > 50 {
+					errorReason = err.Error()[:50]
+				} else {
+					errorReason = err.Error()
+				}
+			}
+		}
+
 		metrics.RecordHandlerError("RefreshToken", "invalid_token")
+		metrics.RecordDetailedError("RefreshToken", "invalid_token", errorReason)
 		metrics.BusinessOperations.WithLabelValues("refresh_token", "failed").Inc()
 		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid refresh token")
 		return
@@ -166,7 +204,24 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	// Generate new token pair
 	tokens, err := services.GenerateTokenPair(*user)
 	if err != nil {
+		errorReason := "unknown"
+		if err.Error() != "" {
+			if strings.Contains(err.Error(), "duplicate key value") {
+				errorReason = "duplicate_token"
+			} else if strings.Contains(err.Error(), "database") {
+				errorReason = "database_error"
+			} else {
+				// Limit the error reason length to avoid cardinality explosion
+				if len(err.Error()) > 50 {
+					errorReason = err.Error()[:50]
+				} else {
+					errorReason = err.Error()
+				}
+			}
+		}
+
 		metrics.RecordHandlerError("RefreshToken", "token_generation_error")
+		metrics.RecordDetailedError("RefreshToken", "token_generation_error", errorReason)
 		metrics.BusinessOperations.WithLabelValues("refresh_token", "failed").Inc()
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error generating tokens")
 		return
