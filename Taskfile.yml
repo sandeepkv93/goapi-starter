@@ -67,7 +67,7 @@ tasks:
 
   docker-run:
     cmds:
-      - docker compose up -d
+      - docker compose up --build -d
     desc: Run all services in Docker
 
   docker-logs:
@@ -89,7 +89,7 @@ tasks:
     cmds:
       - docker compose down -v
       - docker compose up --build -d
-    desc: Stop and remove Docker containers and volumes and start them again
+    desc: Stop and remove Docker containers and volumes and start them again along with removing volumes
 
   docker-dev:
     cmds:
@@ -99,7 +99,7 @@ tasks:
   docker-dev-stop:
     cmds:
       - docker compose -f docker-compose.dev.yml down
-    desc: Stop all services in Docker for local development
+    desc: Stop all services in Docker for local development without removing volumes
 
   docker-dev-logs:
     cmds:
