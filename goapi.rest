@@ -50,7 +50,7 @@ Authorization: Bearer {{accessToken}}
 }
 
 ### Get Product by ID
-@productId = 9cbc39aa-f8a8-4d38-a7cc-3902935328e3
+@productId = 1
 GET {{baseUrl}}/api/dummy-products/{{productId}}
 Authorization: Bearer {{accessToken}}
 

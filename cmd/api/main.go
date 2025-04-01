@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"goapi-starter/internal/cache"
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/database"
 	"goapi-starter/internal/logger"
@@ -26,6 +27,10 @@ func main() {
 	// Initialize database
 	logger.Info().Msg("Initializing database connection")
 	database.InitDB()
+
+	// Initialize Redis
+	logger.Info().Msg("Initializing Redis connection")
+	cache.InitRedis()
 
 	// Auto migrate the schema
 	logger.Info().Msg("Running database migrations")

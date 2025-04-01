@@ -90,6 +90,24 @@ var (
 		},
 		[]string{"handler", "error_type", "error_reason"},
 	)
+
+	// CacheOperations counts cache operations
+	CacheOperations = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "goapi_cache_operations_total",
+			Help: "Total number of cache operations",
+		},
+		[]string{"operation", "type"},
+	)
+
+	// CacheResults counts cache hits/misses
+	CacheResults = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "goapi_cache_results_total",
+			Help: "Total number of cache hits/misses",
+		},
+		[]string{"result"},
+	)
 )
 
 // RecordRequest records metrics for an HTTP request
@@ -125,4 +143,14 @@ func RecordDetailedError(handler, errorType, reason string) {
 // RecordBusinessOperation records a business operation
 func RecordBusinessOperation(operation, result string) {
 	BusinessOperations.WithLabelValues(operation, result).Inc()
+}
+
+// RecordCacheOperation records a cache operation
+func RecordCacheOperation(operation, opType string) {
+	CacheOperations.WithLabelValues(operation, opType).Inc()
+}
+
+// RecordCacheResult records a cache hit or miss
+func RecordCacheResult(result string) {
+	CacheResults.WithLabelValues(result).Inc()
 }

@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"goapi-starter/internal/cache"
 	"goapi-starter/internal/database"
+	"goapi-starter/internal/logger"
 	"goapi-starter/internal/metrics"
 	"goapi-starter/internal/models"
 	"goapi-starter/internal/utils"
@@ -62,6 +65,11 @@ func CreateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Invalidate the list cache since we've added a new product
+	if err := cache.Delete("dummy_products:all"); err != nil {
+		logger.Warn().Err(err).Msg("Failed to invalidate dummy products list cache")
+	}
+
 	metrics.BusinessOperations.WithLabelValues("create_dummy_product", "success").Inc()
 	utils.RespondWithJSON(w, http.StatusCreated, utils.SuccessResponse{
 		Message: "Dummy product created successfully",
@@ -73,7 +81,27 @@ func CreateDummyProduct(w http.ResponseWriter, r *http.Request) {
 func GetDummyProducts(w http.ResponseWriter, r *http.Request) {
 	metrics.BusinessOperations.WithLabelValues("get_dummy_products", "started").Inc()
 
+	// Try to get from cache first
 	var dummyProducts []models.DummyProduct
+	cacheKey := "dummy_products:all"
+
+	found, err := cache.Get(cacheKey, &dummyProducts)
+	if err != nil {
+		logger.Warn().Err(err).Msg("Error retrieving from cache")
+		// Continue with database query
+	}
+
+	if found && len(dummyProducts) > 0 {
+		logger.Info().Msg("Returning dummy products from cache")
+		metrics.BusinessOperations.WithLabelValues("get_dummy_products", "success").Inc()
+		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+			Message: "Dummy products retrieved from cache",
+			Data:    dummyProducts,
+		})
+		return
+	}
+
+	// Not in cache, get from database
 	result := database.DB.Find(&dummyProducts)
 	if result.Error != nil {
 		metrics.RecordHandlerError("GetDummyProducts", "database_error")
@@ -81,6 +109,13 @@ func GetDummyProducts(w http.ResponseWriter, r *http.Request) {
 		metrics.BusinessOperations.WithLabelValues("get_dummy_products", "failed").Inc()
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error retrieving dummy products")
 		return
+	}
+
+	// Store in cache for future requests
+	if len(dummyProducts) > 0 {
+		if err := cache.Set(cacheKey, dummyProducts); err != nil {
+			logger.Warn().Err(err).Msg("Failed to cache dummy products")
+		}
 	}
 
 	metrics.BusinessOperations.WithLabelValues("get_dummy_products", "success").Inc()
@@ -103,7 +138,27 @@ func GetDummyProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Try to get from cache first
 	var dummyProduct models.DummyProduct
+	cacheKey := fmt.Sprintf("dummy_product:%s", id)
+
+	found, err := cache.Get(cacheKey, &dummyProduct)
+	if err != nil {
+		logger.Warn().Err(err).Str("id", id).Msg("Error retrieving product from cache")
+		// Continue with database query
+	}
+
+	if found {
+		logger.Info().Str("id", id).Msg("Returning dummy product from cache")
+		metrics.BusinessOperations.WithLabelValues("get_dummy_product", "success").Inc()
+		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+			Message: "Dummy product retrieved from cache",
+			Data:    dummyProduct,
+		})
+		return
+	}
+
+	// Not in cache, get from database
 	result := database.DB.First(&dummyProduct, id)
 	if result.Error != nil {
 		metrics.RecordHandlerError("GetDummyProduct", "not_found")
@@ -111,6 +166,11 @@ func GetDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.BusinessOperations.WithLabelValues("get_dummy_product", "failed").Inc()
 		utils.RespondWithError(w, http.StatusNotFound, "Dummy product not found")
 		return
+	}
+
+	// Store in cache for future requests
+	if err := cache.Set(cacheKey, dummyProduct); err != nil {
+		logger.Warn().Err(err).Str("id", id).Msg("Failed to cache dummy product")
 	}
 
 	metrics.BusinessOperations.WithLabelValues("get_dummy_product", "success").Inc()
@@ -191,6 +251,17 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 	// Get the updated dummy product
 	database.DB.First(&dummyProduct, id)
 
+	// Update the product in cache
+	cacheKey := fmt.Sprintf("dummy_product:%s", id)
+	if err := cache.Set(cacheKey, dummyProduct); err != nil {
+		logger.Warn().Err(err).Str("id", id).Msg("Failed to update dummy product in cache")
+	}
+
+	// Invalidate the list cache since a product was updated
+	if err := cache.Delete("dummy_products:all"); err != nil {
+		logger.Warn().Err(err).Msg("Failed to invalidate dummy products list cache")
+	}
+
 	metrics.BusinessOperations.WithLabelValues("update_dummy_product", "success").Inc()
 	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
 		Message: "Dummy product updated successfully",
@@ -228,6 +299,17 @@ func DeleteDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.BusinessOperations.WithLabelValues("delete_dummy_product", "failed").Inc()
 		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting dummy product")
 		return
+	}
+
+	// Delete the product from cache
+	cacheKey := fmt.Sprintf("dummy_product:%s", id)
+	if err := cache.Delete(cacheKey); err != nil {
+		logger.Warn().Err(err).Str("id", id).Msg("Failed to delete dummy product from cache")
+	}
+
+	// Invalidate the list cache since a product was deleted
+	if err := cache.Delete("dummy_products:all"); err != nil {
+		logger.Warn().Err(err).Msg("Failed to invalidate dummy products list cache")
 	}
 
 	metrics.BusinessOperations.WithLabelValues("delete_dummy_product", "success").Inc()

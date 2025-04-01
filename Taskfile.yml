@@ -136,4 +136,17 @@ tasks:
   monitoring-logs:
     cmds:
       - docker compose logs -f prometheus grafana
-    desc: Follow monitoring logs 
+    desc: Follow monitoring logs
+
+  redis-up:
+    cmds:
+      - docker compose up -d redis
+    desc: Start Redis container
+
+  redis-cli:
+    cmds:
+      - docker exec -it goapi_starter_redis redis-cli -a {{.REDIS_PASSWORD}}
+    desc: Open Redis CLI
+    vars:
+      REDIS_PASSWORD:
+        sh: grep REDIS_PASSWORD .env | cut -d '=' -f2 || echo "redis" 

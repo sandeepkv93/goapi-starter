@@ -12,6 +12,7 @@ type Config struct {
 	Server   ServerConfig
 	JWT      JWTConfig
 	Database DatabaseConfig
+	Redis    RedisConfig
 }
 
 type ServerConfig struct {
@@ -63,6 +64,7 @@ func LoadConfig() {
 			DBName:   getEnv("DB_NAME", "goapi_starter_db"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
+		Redis: loadRedisConfig(),
 	}
 
 	// Log configuration (excluding sensitive data)
