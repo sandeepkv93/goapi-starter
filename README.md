@@ -97,14 +97,20 @@ goapi-starter/
 ├── internal/            # Core application code
 │   ├── config/          # Configuration management
 │   ├── database/        # Database connection
+│   ├── grafana/         # Grafana configuration
 │   ├── handlers/        # HTTP request handlers
+│   ├── logger/          # Logger
+│   ├── metrics/         # Metrics
 │   ├── middleware/      # Request middleware
 │   ├── models/          # Data models
+│   ├── prometheus/      # Prometheus configuration
 │   ├── routes/          # API route definitions
 │   ├── services/        # Business logic
 │   └── utils/           # Utility functions
 │
+├── goapi.rest           # Rest client for testing the API
 ├── docker-compose.yml   # Docker orchestration
+├── docker-compose.dev.yml # Docker orchestration for local development
 ├── Dockerfile           # Container configuration
 └── Taskfile.yml         # Task automation
 ```
@@ -119,11 +125,11 @@ goapi-starter/
 
 ### Products
 
-- `GET /api/products`: List all products
-- `POST /api/products`: Create a new product
-- `GET /api/products/{id}`: Get a specific product
-- `PUT /api/products/{id}`: Update a product
-- `DELETE /api/products/{id}`: Delete a product
+- `GET /api/dummy-products`: List all products
+- `POST /api/dummy-products`: Create a new product
+- `GET /api/dummy-products/{id}`: Get a specific product
+- `PUT /api/dummy-products/{id}`: Update a product
+- `DELETE /api/dummy-products/{id}`: Delete a product
 
 ## 🛡️ Security Features
 
@@ -153,3 +159,39 @@ The application includes detailed error tracking that categorizes errors and cap
 - Monitoring error trends over time
 
 Error details are available in the Grafana dashboard under the "Error Details" panels.
+
+## 🛠️ Available Tasks
+
+Here are all the available tasks you can run with `task`:
+
+### Development Tasks
+
+- **default**: Run the application (alias for `run`)
+- **ensure-db**: Ensure the database container is running
+- **build**: Build the application binary
+- **run**: Run the application locally
+- **dev**: Run the application with hot reload (requires air)
+- **clean**: Clean build files
+- **test**: Run tests
+- **install-tools**: Install development tools
+
+### Docker Tasks
+
+- **docker-build**: Build Docker images
+- **docker-run**: Run all services in Docker
+- **docker-logs**: Follow Docker logs
+- **docker-stop**: Stop Docker containers
+- **docker-clean**: Stop and remove Docker containers and volumes
+- **docker-clean-run**: Stop and remove Docker containers and volumes and start them again
+- **docker-dev**: Run all services in Docker for local development
+- **docker-dev-stop**: Stop all services in Docker for local development
+- **docker-dev-logs**: Follow Docker logs for local development
+- **docker-dev-clean**: Stop and remove Docker containers and volumes for local development
+- **docker-dev-run**: Run all services in Docker for local development
+
+### Monitoring Tasks
+
+- **prometheus-up**: Start Prometheus container
+- **grafana-up**: Start Grafana container
+- **monitoring-up**: Start all monitoring containers
+- **monitoring-logs**: Follow monitoring logs
