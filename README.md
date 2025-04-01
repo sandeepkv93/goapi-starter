@@ -166,32 +166,38 @@ Here are all the available tasks you can run with `task`:
 
 ### Development Tasks
 
-- **default**: Run the application (alias for `run`)
-- **ensure-db**: Ensure the database container is running
-- **build**: Build the application binary
-- **run**: Run the application locally
-- **dev**: Run the application with hot reload (requires air)
-- **clean**: Clean build files
-- **test**: Run tests
-- **install-tools**: Install development tools
+| Command           | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| **default**       | Run the application (alias for `run`)              |
+| **ensure-db**     | Ensure the database container is running           |
+| **build**         | Build the application binary                       |
+| **run**           | Run the application locally                        |
+| **dev**           | Run the application with hot reload (requires air) |
+| **clean**         | Clean build files                                  |
+| **test**          | Run tests                                          |
+| **install-tools** | Install development tools                          |
 
 ### Docker Tasks
 
-- **docker-build**: Build Docker images
-- **docker-run**: Run all services in Docker
-- **docker-logs**: Follow Docker logs
-- **docker-stop**: Stop Docker containers
-- **docker-clean**: Stop and remove Docker containers and volumes
-- **docker-clean-run**: Stop and remove Docker containers and volumes and start them again
-- **docker-dev**: Run all services in Docker for local development
-- **docker-dev-stop**: Stop all services in Docker for local development
-- **docker-dev-logs**: Follow Docker logs for local development
-- **docker-dev-clean**: Stop and remove Docker containers and volumes for local development
-- **docker-dev-run**: Run all services in Docker for local development
+| Command              | Description                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **docker-build**     | Build Docker images                                                                                                                                          |
+| **docker-run**       | Run all services in Docker                                                                                                                                   |
+| **docker-logs**      | Follow Docker logs                                                                                                                                           |
+| **docker-stop**      | Stop Docker containers                                                                                                                                       |
+| **docker-clean**     | Stop and remove Docker containers and volumes                                                                                                                |
+| **docker-clean-run** | Stop and remove Docker containers and volumes and start them again                                                                                           |
+| **docker-dev**       | Run all services in Docker for local development except the API service. This allows you to run the API service locally via IDE and attach a debugger to it. |
+| **docker-dev-stop**  | Stop all services in Docker for local development except the API service                                                                                     |
+| **docker-dev-logs**  | Follow Docker logs for local development except the API service                                                                                              |
+| **docker-dev-clean** | Stop and remove Docker containers and volumes for local development except the API service                                                                   |
+| **docker-dev-run**   | Run all services in Docker for local development and run the API service locally without IDE                                                                 |
 
 ### Monitoring Tasks
 
-- **prometheus-up**: Start Prometheus container
-- **grafana-up**: Start Grafana container
-- **monitoring-up**: Start all monitoring containers
-- **monitoring-logs**: Follow monitoring logs
+| Command             | Description                     |
+| ------------------- | ------------------------------- |
+| **prometheus-up**   | Start Prometheus container      |
+| **grafana-up**      | Start Grafana container         |
+| **monitoring-up**   | Start all monitoring containers |
+| **monitoring-logs** | Follow monitoring logs          |
