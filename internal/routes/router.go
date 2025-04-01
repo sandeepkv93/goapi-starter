@@ -25,7 +25,7 @@ func SetupRouter() *chi.Mux {
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(customMiddleware.AuthMiddleware)
-		r.Mount("/api/products", DummyProductRoutes())
+		r.Mount("/api/dummy-products", DummyProductRoutes())
 	})
 
 	return r

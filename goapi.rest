@@ -34,11 +34,11 @@ Content-Type: {{contentType}}
 }
 
 ### List All Products
-GET {{baseUrl}}/api/products
+GET {{baseUrl}}/api/dummy-products
 Authorization: Bearer {{accessToken}}
 
 ### Create Product
-POST {{baseUrl}}/api/products
+POST {{baseUrl}}/api/dummy-products
 Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
@@ -51,11 +51,11 @@ Authorization: Bearer {{accessToken}}
 
 ### Get Product by ID
 @productId = 9cbc39aa-f8a8-4d38-a7cc-3902935328e3
-GET {{baseUrl}}/api/products/{{productId}}
+GET {{baseUrl}}/api/dummy-products/{{productId}}
 Authorization: Bearer {{accessToken}}
 
 ### Update Product
-PUT {{baseUrl}}/api/products/{{productId}}
+PUT {{baseUrl}}/api/dummy-products/{{productId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
@@ -67,7 +67,7 @@ Authorization: Bearer {{accessToken}}
 }
 
 ### Delete Product
-DELETE {{baseUrl}}/api/products/{{productId}}
+DELETE {{baseUrl}}/api/dummy-products/{{productId}}
 Authorization: Bearer {{accessToken}} 
 
 
