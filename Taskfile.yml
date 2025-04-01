@@ -8,6 +8,7 @@ tasks:
     cmds:
       - task: run
 
+  # Development tasks
   ensure-db:
     cmds:
       - |
@@ -40,6 +41,25 @@ tasks:
       - air
     desc: Run the application with hot reload (requires air)
 
+  clean:
+    cmds:
+      - rm -rf bin
+    desc: Clean build files
+
+  test:
+    cmds:
+      - go test -v ./...
+    desc: Run tests
+
+  install-tools:
+    cmds:
+      - |
+        if ! command -v air &> /dev/null; then
+          go install github.com/air-verse/air@latest
+        fi
+    desc: Install development tools
+
+  # Docker tasks
   docker-build:
     cmds:
       - docker compose build
@@ -71,24 +91,7 @@ tasks:
       - docker compose up --build -d
     desc: Stop and remove Docker containers and volumes and start them again
 
-  clean:
-    cmds:
-      - rm -rf bin
-    desc: Clean build files
-
-  test:
-    cmds:
-      - go test -v ./...
-    desc: Run tests
-
-  install-tools:
-    cmds:
-      - |
-        if ! command -v air &> /dev/null; then
-          go install github.com/air-verse/air@latest
-        fi
-    desc: Install development tools
-
+  # Monitoring tasks
   prometheus-up:
     cmds:
       - docker compose up -d prometheus
