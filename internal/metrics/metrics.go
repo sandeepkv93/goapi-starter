@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -84,8 +85,9 @@ var (
 
 // RecordRequest records metrics for an HTTP request
 func RecordRequest(method, path string, status int, duration time.Duration) {
-	RequestCounter.WithLabelValues(method, path, string(rune(status))).Inc()
-	RequestDuration.WithLabelValues(method, path, string(rune(status))).Observe(duration.Seconds())
+	statusStr := strconv.Itoa(status)
+	RequestCounter.WithLabelValues(method, path, statusStr).Inc()
+	RequestDuration.WithLabelValues(method, path, statusStr).Observe(duration.Seconds())
 }
 
 // RecordDatabaseOperation records a database operation
@@ -95,8 +97,9 @@ func RecordDatabaseOperation(operation, entity string) {
 
 // RecordHandlerExecution records metrics for a handler execution
 func RecordHandlerExecution(handler string, status int, duration time.Duration) {
-	HandlerCounter.WithLabelValues(handler, string(rune(status))).Inc()
-	HandlerDuration.WithLabelValues(handler, string(rune(status))).Observe(duration.Seconds())
+	statusStr := strconv.Itoa(status)
+	HandlerCounter.WithLabelValues(handler, statusStr).Inc()
+	HandlerDuration.WithLabelValues(handler, statusStr).Observe(duration.Seconds())
 }
 
 // RecordHandlerError records a handler error
