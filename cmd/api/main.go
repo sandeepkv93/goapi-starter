@@ -20,7 +20,7 @@ func main() {
 	database.InitDB()
 
 	// Auto migrate the schema
-	database.DB.AutoMigrate(&models.User{}, &models.Product{}, &models.RefreshToken{})
+	database.DB.AutoMigrate(&models.User{}, &models.DummyProduct{}, &models.RefreshToken{})
 
 	router := routes.SetupRouter()
 
