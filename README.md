@@ -132,3 +132,24 @@ goapi-starter/
 - Refresh token mechanism
 - Input validation
 - Middleware-based authentication
+
+## Metrics and Monitoring
+
+The application includes comprehensive metrics for monitoring:
+
+- **HTTP Metrics**: Request counts, durations, and status codes
+- **Business Operation Metrics**: Success/failure rates for key operations
+- **Error Tracking**: Detailed error tracking with categorization
+- **Database Metrics**: Database operation counts and performance
+
+Metrics are exposed via a `/metrics` endpoint in Prometheus format and can be visualized using the included Grafana dashboards.
+
+### Error Tracking
+
+The application includes detailed error tracking that categorizes errors and captures specific error reasons. This helps with:
+
+- Identifying common error patterns
+- Debugging specific issues
+- Monitoring error trends over time
+
+Error details are available in the Grafana dashboard under the "Error Details" panels.
