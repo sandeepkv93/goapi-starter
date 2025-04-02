@@ -108,6 +108,26 @@ var (
 		},
 		[]string{"result"},
 	)
+
+	// CacheDuration measures the time taken for cache operations
+	CacheDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "goapi_cache_duration_seconds",
+			Help:    "Duration of cache operations in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"operation"},
+	)
+
+	// CacheSize tracks the size of cached objects
+	CacheSize = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "goapi_cache_size_bytes",
+			Help:    "Size of cached objects in bytes",
+			Buckets: []float64{64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536},
+		},
+		[]string{"key_prefix"},
+	)
 )
 
 // RecordRequest records metrics for an HTTP request
@@ -153,4 +173,14 @@ func RecordCacheOperation(operation, opType string) {
 // RecordCacheResult records a cache hit or miss
 func RecordCacheResult(result string) {
 	CacheResults.WithLabelValues(result).Inc()
+}
+
+// RecordCacheDuration records the duration of a cache operation
+func RecordCacheDuration(operation string, duration time.Duration) {
+	CacheDuration.WithLabelValues(operation).Observe(duration.Seconds())
+}
+
+// RecordCacheSize records the size of a cached object
+func RecordCacheSize(keyPrefix string, size int) {
+	CacheSize.WithLabelValues(keyPrefix).Observe(float64(size))
 }

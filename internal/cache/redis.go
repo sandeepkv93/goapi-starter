@@ -6,6 +6,7 @@ import (
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/logger"
 	"goapi-starter/internal/metrics"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -48,6 +49,10 @@ func Set(key string, value interface{}) error {
 // SetWithTTL stores a value in the cache with a specific TTL
 func SetWithTTL(key string, value interface{}, ttl time.Duration) error {
 	metrics.RecordCacheOperation("set", "custom_ttl")
+	startTime := time.Now()
+	defer func() {
+		metrics.RecordCacheDuration("set", time.Since(startTime))
+	}()
 
 	// Marshal the value to JSON
 	jsonValue, err := json.Marshal(value)
@@ -55,6 +60,10 @@ func SetWithTTL(key string, value interface{}, ttl time.Duration) error {
 		logger.Error().Err(err).Str("key", key).Msg("Failed to marshal value for caching")
 		return err
 	}
+
+	// Record the size of the cached object
+	keyPrefix := strings.Split(key, ":")[0]
+	metrics.RecordCacheSize(keyPrefix, len(jsonValue))
 
 	// Store in Redis
 	err = RedisClient.Set(ctx, key, jsonValue, ttl).Err()
@@ -70,6 +79,10 @@ func SetWithTTL(key string, value interface{}, ttl time.Duration) error {
 // Get retrieves a value from the cache
 func Get(key string, dest interface{}) (bool, error) {
 	metrics.RecordCacheOperation("get", "default")
+	startTime := time.Now()
+	defer func() {
+		metrics.RecordCacheDuration("get", time.Since(startTime))
+	}()
 
 	// Get from Redis
 	val, err := RedisClient.Get(ctx, key).Result()
@@ -101,6 +114,10 @@ func Get(key string, dest interface{}) (bool, error) {
 // Delete removes a value from the cache
 func Delete(key string) error {
 	metrics.RecordCacheOperation("delete", "default")
+	startTime := time.Now()
+	defer func() {
+		metrics.RecordCacheDuration("delete", time.Since(startTime))
+	}()
 
 	err := RedisClient.Del(ctx, key).Err()
 	if err != nil {
@@ -115,6 +132,10 @@ func Delete(key string) error {
 // FlushAll clears the entire cache
 func FlushAll() error {
 	metrics.RecordCacheOperation("flush", "all")
+	startTime := time.Now()
+	defer func() {
+		metrics.RecordCacheDuration("flush", time.Since(startTime))
+	}()
 
 	err := RedisClient.FlushAll(ctx).Err()
 	if err != nil {
