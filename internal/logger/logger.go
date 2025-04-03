@@ -2,10 +2,16 @@ package logger
 
 import (
 	"os"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+)
+
+var (
+	requestLogger    zerolog.Logger
+	requestLoggerMux sync.RWMutex
 )
 
 func Init() {
@@ -33,23 +39,51 @@ func Init() {
 	log.Logger = log.With().Caller().Logger()
 }
 
-// Convenience methods
-func Info() *zerolog.Event {
-	return log.Info()
+// SetRequestLogger sets the logger for the current request
+func SetRequestLogger(l zerolog.Logger) {
+	requestLoggerMux.Lock()
+	defer requestLoggerMux.Unlock()
+	requestLogger = l
 }
 
-func Error() *zerolog.Event {
-	return log.Error()
+// ClearRequestLogger clears the request logger
+func ClearRequestLogger() {
+	requestLoggerMux.Lock()
+	defer requestLoggerMux.Unlock()
+	requestLogger = log.Logger // Reset to default logger
 }
 
+// Debug returns a debug level event logger with request context
 func Debug() *zerolog.Event {
-	return log.Debug()
+	requestLoggerMux.RLock()
+	defer requestLoggerMux.RUnlock()
+	return requestLogger.Debug()
 }
 
+// Info returns an info level event logger with request context
+func Info() *zerolog.Event {
+	requestLoggerMux.RLock()
+	defer requestLoggerMux.RUnlock()
+	return requestLogger.Info()
+}
+
+// Warn returns a warn level event logger with request context
 func Warn() *zerolog.Event {
-	return log.Warn()
+	requestLoggerMux.RLock()
+	defer requestLoggerMux.RUnlock()
+	return requestLogger.Warn()
 }
 
+// Error returns an error level event logger with request context
+func Error() *zerolog.Event {
+	requestLoggerMux.RLock()
+	defer requestLoggerMux.RUnlock()
+	return requestLogger.Error()
+}
+
+// Fatal returns a fatal level event logger with request context
 func Fatal() *zerolog.Event {
-	return log.Fatal()
+	requestLoggerMux.RLock()
+	defer requestLoggerMux.RUnlock()
+	return requestLogger.Fatal()
 }

@@ -14,6 +14,10 @@ import (
 func SetupRouter() *chi.Mux {
 	r := chi.NewRouter()
 
+	// Add correlation middleware early in the chain
+	r.Use(customMiddleware.CorrelationMiddleware)
+	r.Use(customMiddleware.LoggingMiddleware)
+
 	// CORS middleware
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // In production, specify exact domains
@@ -26,7 +30,6 @@ func SetupRouter() *chi.Mux {
 
 	// Global middleware
 	r.Use(corsMiddleware.Handler)
-	r.Use(customMiddleware.LoggingMiddleware)
 	r.Use(customMiddleware.PrometheusMiddleware)
 	r.Use(middleware.Recoverer)
 
