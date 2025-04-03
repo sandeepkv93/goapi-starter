@@ -5,6 +5,7 @@ import (
 	"goapi-starter/internal/cache"
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/logger"
+	"goapi-starter/internal/metrics"
 	"goapi-starter/internal/utils"
 	"net/http"
 	"strings"
@@ -44,6 +45,31 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenStr := bearerToken[1]
+
+		// Check if token is blacklisted - CRITICAL CHECK
+		blacklisted, err := cache.IsAccessTokenBlacklisted(tokenStr)
+		if err != nil {
+			logger.Warn().
+				Err(err).
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Msg("Error checking token blacklist")
+			// If we can't check the blacklist, fail closed for security
+			utils.RespondWithError(w, http.StatusUnauthorized, "Authentication error")
+			return
+		}
+
+		if blacklisted {
+			logger.Warn().
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Str("remote_ip", r.RemoteAddr).
+				Msg("Token is blacklisted")
+			metrics.RecordHandlerError("AuthMiddleware", "blacklisted_token")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Token has been revoked")
+			return
+		}
+
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.AppConfig.JWT.AccessSecret), nil
 		})
@@ -84,6 +110,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Create a context with the user ID
 		ctx := context.WithValue(r.Context(), "userID", userID)
+
+		// Store the token in context for potential blacklisting during logout
+		ctx = context.WithValue(ctx, "accessToken", tokenStr)
 
 		// Try to get user from cache
 		cachedUser, found, err := cache.GetCachedUser(userID)

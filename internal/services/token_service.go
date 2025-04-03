@@ -161,6 +161,19 @@ func generateRefreshToken(user models.User) (string, error) {
 func ValidateRefreshToken(tokenString string) (*models.User, error) {
 	logger.Debug().Msg("Validating refresh token")
 
+	// Check if token is blacklisted
+	blacklisted, err := cache.IsRefreshTokenBlacklisted(tokenString)
+	if err != nil {
+		logger.Warn().
+			Err(err).
+			Msg("Error checking refresh token blacklist")
+		// Continue even if blacklist check fails
+	} else if blacklisted {
+		logger.Warn().
+			Msg("Refresh token is blacklisted")
+		return nil, errors.New("token has been revoked")
+	}
+
 	// Find token in database
 	var refreshToken models.RefreshToken
 	if result := database.DB.Where("token = ? AND expires_at > ?", tokenString, time.Now()).First(&refreshToken); result.Error != nil {

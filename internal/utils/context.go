@@ -16,3 +16,9 @@ func GetUserIDFromContext(ctx context.Context) (string, bool) {
 	userID, ok := ctx.Value("userID").(string)
 	return userID, ok
 }
+
+// GetAccessTokenFromContext retrieves the access token from the context
+func GetAccessTokenFromContext(ctx context.Context) (string, bool) {
+	token, ok := ctx.Value("accessToken").(string)
+	return token, ok
+}
