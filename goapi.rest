@@ -42,11 +42,11 @@ Content-Type: {{contentType}}
     "refresh_token": "{{refreshToken}}"
 }
 
-### List All Products
+### List All Dummy Products
 GET {{baseUrl}}/api/dummy-products
 Authorization: Bearer {{accessToken}}
 
-### Create Product
+### Create Dummy Product
 POST {{baseUrl}}/api/dummy-products
 Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
@@ -58,12 +58,12 @@ Authorization: Bearer {{accessToken}}
     "stock": 100
 }
 
-### Get Product by ID
+### Get Dummy Product by ID
 @productId = 1
 GET {{baseUrl}}/api/dummy-products/{{productId}}
 Authorization: Bearer {{accessToken}}
 
-### Update Product
+### Update Dummy Product
 PUT {{baseUrl}}/api/dummy-products/{{productId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
@@ -75,10 +75,9 @@ Authorization: Bearer {{accessToken}}
     "stock": 150
 }
 
-### Delete Product
+### Delete Dummy Product
 DELETE {{baseUrl}}/api/dummy-products/{{productId}}
 Authorization: Bearer {{accessToken}} 
-
 
 ### Metrics Endpoint
 GET {{baseUrl}}/metrics
