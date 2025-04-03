@@ -95,6 +95,7 @@ goapi-starter/
 │       └── main.go
 │
 ├── internal/            # Core application code
+│   ├── cache/           # Cache management
 │   ├── config/          # Configuration management
 │   ├── database/        # Database connection
 │   ├── grafana/         # Grafana configuration
@@ -120,8 +121,13 @@ goapi-starter/
 - `POST /api/auth/signup`: Register a new user
 - `POST /api/auth/signin`: User login
 - `POST /api/auth/refresh`: Refresh authentication tokens
+- `POST /api/auth/logout`: Logout a user
 
 ## 📦 API Endpoints
+
+### User
+
+- `GET /api/user/profile`: Get user profile
 
 ### Products
 
@@ -138,6 +144,7 @@ goapi-starter/
 - Refresh token mechanism
 - Input validation
 - Middleware-based authentication
+- Blacklist tokens to prevent reuse
 
 ## Metrics and Monitoring
 
