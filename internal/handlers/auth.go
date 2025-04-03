@@ -156,10 +156,14 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("signin", "success").Inc()
+
 	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
 		Message: "Successfully signed in",
 		Data: map[string]interface{}{
-			"user":   user,
+			"user": map[string]interface{}{
+				"username": user.Username,
+				"email":    user.Email,
+			},
 			"tokens": tokens,
 		},
 	})

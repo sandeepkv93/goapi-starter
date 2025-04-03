@@ -16,3 +16,9 @@ type RefreshToken struct {
 
 	User User `json:"-" gorm:"foreignKey:UserID"`
 }
+
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int    `json:"expires_in"` // seconds until access token expires
+}

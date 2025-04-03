@@ -74,8 +74,9 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		// Continue even if caching fails
 	}
 
-	// Don't return the password
+	// Don't return the password & id
 	dbUser.Password = ""
+	dbUser.ID = ""
 
 	metrics.BusinessOperations.WithLabelValues("get_profile", "success").Inc()
 	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
