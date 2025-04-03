@@ -174,7 +174,18 @@ func ValidateRefreshToken(tokenString string) (*models.User, error) {
 		return nil, errors.New("token has been revoked")
 	}
 
-	// Find token in database
+	// Check if token is in Redis cache
+	userID, found, err := cache.GetCachedRefreshToken(tokenString)
+	if err == nil && found && userID != "" {
+		logger.Debug().
+			Str("user_id", userID).
+			Msg("Refresh token found in cache, skipping database validation")
+
+		// Token is valid and cached, get user
+		return getUserForToken(userID)
+	}
+
+	// Not in cache, validate from database
 	var refreshToken models.RefreshToken
 	if result := database.DB.Where("token = ? AND expires_at > ?", tokenString, time.Now()).First(&refreshToken); result.Error != nil {
 		logger.Warn().
@@ -201,12 +212,30 @@ func ValidateRefreshToken(tokenString string) (*models.User, error) {
 		return nil, errors.New("invalid refresh token")
 	}
 
+	// Cache the validated token for future checks
+	timeUntilExpiry := time.Until(refreshToken.ExpiresAt)
+	if timeUntilExpiry > 0 {
+		if cacheErr := cache.CacheRefreshToken(tokenString, refreshToken.UserID, timeUntilExpiry); cacheErr != nil {
+			logger.Warn().
+				Err(cacheErr).
+				Str("user_id", refreshToken.UserID).
+				Msg("Failed to cache validated refresh token")
+			// Continue even if caching fails
+		}
+	}
+
+	// Get user for the token
+	return getUserForToken(refreshToken.UserID)
+}
+
+// Helper function to get user by ID (from cache or database)
+func getUserForToken(userID string) (*models.User, error) {
 	// Try to get user from cache first
-	cachedUser, found, err := cache.GetCachedUser(refreshToken.UserID)
+	cachedUser, found, err := cache.GetCachedUser(userID)
 	if err != nil {
 		logger.Warn().
 			Err(err).
-			Str("user_id", refreshToken.UserID).
+			Str("user_id", userID).
 			Msg("Error retrieving user from cache")
 		// Continue with database lookup
 	}
@@ -221,10 +250,10 @@ func ValidateRefreshToken(tokenString string) (*models.User, error) {
 
 	// User not in cache, get from database
 	var user models.User
-	if result := database.DB.First(&user, "id = ?", refreshToken.UserID); result.Error != nil {
+	if result := database.DB.First(&user, "id = ?", userID); result.Error != nil {
 		logger.Error().
 			Err(result.Error).
-			Str("user_id", refreshToken.UserID).
+			Str("user_id", userID).
 			Msg("User not found for refresh token")
 		return nil, errors.New("user not found")
 	}

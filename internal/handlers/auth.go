@@ -241,6 +241,14 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Invalidate the old refresh token's cache
+	if err := cache.InvalidateRefreshTokenCache(req.RefreshToken); err != nil {
+		logger.Warn().
+			Err(err).
+			Msg("Failed to invalidate old refresh token cache")
+		// Continue even if cache invalidation fails
+	}
+
 	metrics.BusinessOperations.WithLabelValues("refresh_token", "success").Inc()
 	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
 		Message: "Tokens refreshed successfully",
@@ -314,6 +322,17 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 				logger.Debug().
 					Str("token_id", rt.ID).
 					Msg("Refresh token blacklisted successfully")
+			}
+
+			if err := cache.InvalidateRefreshTokenCache(rt.Token); err != nil {
+				logger.Warn().
+					Err(err).
+					Str("token_id", rt.ID).
+					Msg("Failed to invalidate refresh token cache")
+			} else {
+				logger.Debug().
+					Str("token_id", rt.ID).
+					Msg("Refresh token cache invalidated successfully")
 			}
 		}
 
