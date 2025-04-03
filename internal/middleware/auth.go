@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"goapi-starter/internal/cache"
 	"goapi-starter/internal/config"
 	"goapi-starter/internal/logger"
 	"goapi-starter/internal/utils"
@@ -69,15 +70,44 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Add user ID to context
-		userID := claims["user_id"]
+		// Extract user ID from claims
+		userID, ok := claims["user_id"].(string)
+		if !ok {
+			logger.Warn().
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Str("remote_ip", r.RemoteAddr).
+				Msg("Invalid user ID in token")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token")
+			return
+		}
+
+		// Create a context with the user ID
 		ctx := context.WithValue(r.Context(), "userID", userID)
+
+		// Try to get user from cache
+		cachedUser, found, err := cache.GetCachedUser(userID)
+		if err != nil {
+			logger.Warn().
+				Err(err).
+				Str("user_id", userID).
+				Msg("Error retrieving user from cache in middleware")
+			// Continue with just the user ID in context
+		} else if found && cachedUser != nil {
+			// Add the full user object to the context if found in cache
+			logger.Debug().
+				Str("user_id", userID).
+				Str("username", cachedUser.Username).
+				Msg("User data retrieved from cache in middleware")
+			ctx = context.WithValue(ctx, "user", cachedUser)
+		}
 
 		logger.Debug().
 			Str("method", r.Method).
 			Str("path", r.URL.Path).
 			Str("remote_ip", r.RemoteAddr).
-			Interface("user_id", userID).
+			Str("user_id", userID).
+			Bool("user_cached", found && cachedUser != nil).
 			Msg("Authentication successful")
 
 		next.ServeHTTP(w, r.WithContext(ctx))

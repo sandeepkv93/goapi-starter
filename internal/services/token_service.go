@@ -10,6 +10,8 @@ import (
 	"goapi-starter/internal/models"
 	"time"
 
+	"goapi-starter/internal/cache"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -186,7 +188,25 @@ func ValidateRefreshToken(tokenString string) (*models.User, error) {
 		return nil, errors.New("invalid refresh token")
 	}
 
-	// Get user
+	// Try to get user from cache first
+	cachedUser, found, err := cache.GetCachedUser(refreshToken.UserID)
+	if err != nil {
+		logger.Warn().
+			Err(err).
+			Str("user_id", refreshToken.UserID).
+			Msg("Error retrieving user from cache")
+		// Continue with database lookup
+	}
+
+	if found && cachedUser != nil {
+		logger.Info().
+			Str("user_id", cachedUser.ID).
+			Str("username", cachedUser.Username).
+			Msg("User retrieved from cache for refresh token")
+		return cachedUser, nil
+	}
+
+	// User not in cache, get from database
 	var user models.User
 	if result := database.DB.First(&user, "id = ?", refreshToken.UserID); result.Error != nil {
 		logger.Error().
@@ -194,6 +214,15 @@ func ValidateRefreshToken(tokenString string) (*models.User, error) {
 			Str("user_id", refreshToken.UserID).
 			Msg("User not found for refresh token")
 		return nil, errors.New("user not found")
+	}
+
+	// Cache the user for future requests
+	if err := cache.CacheUser(user); err != nil {
+		logger.Warn().
+			Err(err).
+			Str("user_id", user.ID).
+			Msg("Failed to cache user data during token validation")
+		// Continue even if caching fails
 	}
 
 	logger.Info().

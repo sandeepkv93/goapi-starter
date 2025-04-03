@@ -13,6 +13,7 @@ func AuthRoutes() chi.Router {
 	r.Post("/signup", utils.InstrumentHandler("SignUp", handlers.SignUp))
 	r.Post("/signin", utils.InstrumentHandler("SignIn", handlers.SignIn))
 	r.Post("/refresh", utils.InstrumentHandler("RefreshToken", handlers.RefreshToken))
+	r.Post("/logout", utils.InstrumentHandler("Logout", handlers.Logout))
 
 	return r
 }

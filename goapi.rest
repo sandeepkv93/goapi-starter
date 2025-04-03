@@ -25,6 +25,18 @@ Content-Type: {{contentType}}
 @accessToken = {{signin.response.body.data.tokens.access_token}}
 @refreshToken = {{signin.response.body.data.tokens.refresh_token}}
 
+### Get Profile
+GET {{baseUrl}}/api/user/profile
+Authorization: Bearer {{accessToken}}
+
+### Logout
+POST {{baseUrl}}/api/auth/logout
+Content-Type: {{contentType}}
+
+{
+    "refresh_token": "{{refreshToken}}"
+}
+
 ### Refresh Token
 POST {{baseUrl}}/api/auth/refresh
 Content-Type: {{contentType}}

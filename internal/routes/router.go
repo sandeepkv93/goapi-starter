@@ -43,5 +43,8 @@ func SetupRouter() *chi.Mux {
 		r.Mount("/api/dummy-products", DummyProductRoutes())
 	})
 
+	// User routes
+	r.Mount("/api/user", UserRoutes())
+
 	return r
 }

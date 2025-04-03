@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"goapi-starter/internal/cache"
 	"goapi-starter/internal/database"
+	"goapi-starter/internal/logger"
 	"goapi-starter/internal/metrics"
 	"goapi-starter/internal/models"
 	"goapi-starter/internal/services"
@@ -145,6 +147,14 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Cache the user for future requests
+	if err := cache.CacheUser(user); err != nil {
+		logger.Warn().Err(err).Str("user_id", user.ID).Msg("Failed to cache user data")
+		// Continue even if caching fails
+	} else {
+		logger.Debug().Str("user_id", user.ID).Msg("User data cached successfully")
+	}
+
 	metrics.BusinessOperations.WithLabelValues("signin", "success").Inc()
 	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
 		Message: "Successfully signed in",
@@ -231,5 +241,58 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
 		Message: "Tokens refreshed successfully",
 		Data:    tokens,
+	})
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	metrics.BusinessOperations.WithLabelValues("logout", "started").Inc()
+
+	var req models.RefreshRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		metrics.RecordHandlerError("Logout", "invalid_request")
+		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := utils.ValidateStruct(req); err != nil {
+		metrics.RecordHandlerError("Logout", "validation_error")
+		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
+		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Find the refresh token
+	var refreshToken models.RefreshToken
+	if result := database.DB.Where("token = ?", req.RefreshToken).First(&refreshToken); result.Error != nil {
+		// Token not found, but we'll return success anyway for security reasons
+		metrics.RecordHandlerError("Logout", "token_not_found")
+		metrics.BusinessOperations.WithLabelValues("logout", "success").Inc()
+		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+			Message: "Logged out successfully",
+		})
+		return
+	}
+
+	// Invalidate user cache
+	if err := cache.InvalidateUserCache(refreshToken.UserID); err != nil {
+		logger.Warn().
+			Err(err).
+			Str("user_id", refreshToken.UserID).
+			Msg("Failed to invalidate user cache during logout")
+		// Continue even if cache invalidation fails
+	}
+
+	// Delete the refresh token
+	if result := database.DB.Delete(&refreshToken); result.Error != nil {
+		metrics.RecordHandlerError("Logout", "database_error")
+		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
+		utils.RespondWithError(w, http.StatusInternalServerError, "Error during logout")
+		return
+	}
+
+	metrics.BusinessOperations.WithLabelValues("logout", "success").Inc()
+	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+		Message: "Logged out successfully",
 	})
 }
