@@ -66,7 +66,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("remote_ip", r.RemoteAddr).
 				Msg("Token is blacklisted")
 			metrics.RecordHandlerError("AuthMiddleware", "blacklisted_token")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Token has been revoked")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Token has been revoked or expired. Please sign in again.")
 			return
 		}
 

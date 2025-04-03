@@ -247,12 +247,22 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 func Logout(w http.ResponseWriter, r *http.Request) {
 	metrics.BusinessOperations.WithLabelValues("logout", "started").Inc()
 
-	// Get user ID from context to ensure we can invalidate cache even if refresh token is missing
+	// Get user ID from context
 	userID, userIDFound := utils.GetUserIDFromContext(r.Context())
+	if !userIDFound || userID == "" {
+		metrics.RecordHandlerError("Logout", "user_not_found")
+		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
 
 	// Get the current access token from context
 	accessToken, ok := r.Context().Value("accessToken").(string)
 	if ok && accessToken != "" {
+		logger.Debug().
+			Str("token_prefix", accessToken[:10]+"...").
+			Msg("Blacklisting access token from context")
+
 		// Blacklist the access token
 		if err := cache.BlacklistAccessToken(accessToken); err != nil {
 			logger.Warn().
@@ -260,80 +270,61 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 				Msg("Failed to blacklist access token")
 			// Continue even if blacklisting fails
 		} else {
-			logger.Debug().Msg("Access token blacklisted successfully")
+			logger.Info().
+				Str("token_prefix", accessToken[:10]+"...").
+				Msg("Access token blacklisted successfully")
 		}
-
-		// If we have the user ID from context, invalidate cache immediately
-		if userIDFound && userID != "" {
-			if err := cache.InvalidateUserCache(userID); err != nil {
-				logger.Warn().
-					Err(err).
-					Str("user_id", userID).
-					Msg("Failed to invalidate user cache from context during logout")
-			} else {
-				logger.Debug().
-					Str("user_id", userID).
-					Msg("User cache invalidated from context during logout")
-			}
-		}
-	}
-
-	var req models.RefreshRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		metrics.RecordHandlerError("Logout", "invalid_request")
-		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
-		return
-	}
-
-	if err := utils.ValidateStruct(req); err != nil {
-		metrics.RecordHandlerError("Logout", "validation_error")
-		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// Blacklist the refresh token
-	if err := cache.BlacklistRefreshToken(req.RefreshToken); err != nil {
-		logger.Warn().
-			Err(err).
-			Msg("Failed to blacklist refresh token")
-		// Continue even if blacklisting fails
 	} else {
-		logger.Debug().Msg("Refresh token blacklisted successfully")
+		logger.Warn().Msg("No access token found in context during logout")
 	}
 
-	// Find the refresh token
-	var refreshToken models.RefreshToken
-	if result := database.DB.Where("token = ?", req.RefreshToken).First(&refreshToken); result.Error != nil {
-		// Token not found, but we'll return success anyway for security reasons
-		metrics.RecordHandlerError("Logout", "token_not_found")
-		metrics.BusinessOperations.WithLabelValues("logout", "success").Inc()
-		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
-			Message: "Logged out successfully",
-		})
-		return
-	}
-
-	// Invalidate user cache from refresh token
-	if err := cache.InvalidateUserCache(refreshToken.UserID); err != nil {
+	// Invalidate user cache
+	if err := cache.InvalidateUserCache(userID); err != nil {
 		logger.Warn().
 			Err(err).
-			Str("user_id", refreshToken.UserID).
+			Str("user_id", userID).
 			Msg("Failed to invalidate user cache during logout")
 		// Continue even if cache invalidation fails
 	} else {
 		logger.Debug().
-			Str("user_id", refreshToken.UserID).
+			Str("user_id", userID).
 			Msg("User cache invalidated during logout")
 	}
 
-	// Delete the refresh token
-	if result := database.DB.Delete(&refreshToken); result.Error != nil {
-		metrics.RecordHandlerError("Logout", "database_error")
-		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error during logout")
-		return
+	// Find and invalidate all active refresh tokens for this user
+	var refreshTokens []models.RefreshToken
+	if result := database.DB.Where("user_id = ? AND expires_at > NOW()", userID).Find(&refreshTokens); result.Error != nil {
+		logger.Warn().
+			Err(result.Error).
+			Str("user_id", userID).
+			Msg("Failed to retrieve refresh tokens during logout")
+	} else {
+		// Blacklist all active refresh tokens
+		for _, rt := range refreshTokens {
+			if err := cache.BlacklistRefreshToken(rt.Token); err != nil {
+				logger.Warn().
+					Err(err).
+					Str("token_id", rt.ID).
+					Msg("Failed to blacklist refresh token")
+			} else {
+				logger.Debug().
+					Str("token_id", rt.ID).
+					Msg("Refresh token blacklisted successfully")
+			}
+		}
+
+		// Delete all refresh tokens for this user
+		if result := database.DB.Where("user_id = ?", userID).Delete(&models.RefreshToken{}); result.Error != nil {
+			logger.Warn().
+				Err(result.Error).
+				Str("user_id", userID).
+				Msg("Failed to delete refresh tokens during logout")
+		} else {
+			logger.Debug().
+				Int64("count", result.RowsAffected).
+				Str("user_id", userID).
+				Msg("Refresh tokens deleted successfully")
+		}
 	}
 
 	metrics.BusinessOperations.WithLabelValues("logout", "success").Inc()

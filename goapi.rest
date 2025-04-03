@@ -32,10 +32,7 @@ Authorization: Bearer {{accessToken}}
 ### Logout
 POST {{baseUrl}}/api/auth/logout
 Content-Type: {{contentType}}
-
-{
-    "refresh_token": "{{refreshToken}}"
-}
+Authorization: Bearer {{accessToken}}
 
 ### Refresh Token
 POST {{baseUrl}}/api/auth/refresh

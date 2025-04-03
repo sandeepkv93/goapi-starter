@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"goapi-starter/internal/handlers"
 	customMiddleware "goapi-starter/internal/middleware"
+	"goapi-starter/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -41,10 +43,13 @@ func SetupRouter() *chi.Mux {
 	r.Group(func(r chi.Router) {
 		r.Use(customMiddleware.AuthMiddleware)
 		r.Mount("/api/dummy-products", DummyProductRoutes())
-	})
 
-	// User routes
-	r.Mount("/api/user", UserRoutes())
+		// User routes
+		r.Mount("/api/user", UserRoutes())
+
+		// Logout route
+		r.Post("/api/auth/logout", utils.InstrumentHandler("Logout", handlers.Logout))
+	})
 
 	return r
 }
