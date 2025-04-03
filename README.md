@@ -105,6 +105,7 @@ goapi-starter/
 │   ├── middleware/      # Request middleware
 │   ├── models/          # Data models
 │   ├── prometheus/      # Prometheus configuration
+│   ├── ratelimit/       # Rate limiting
 │   ├── routes/          # API route definitions
 │   ├── services/        # Business logic
 │   └── utils/           # Utility functions

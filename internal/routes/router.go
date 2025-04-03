@@ -33,14 +33,12 @@ func SetupRouter() *chi.Mux {
 	// Apply IP-based rate limiting to all routes
 	r.Use(customMiddleware.IPRateLimitMiddleware)
 
-	// Public routes
+	// Monitoring endpoints (health & metrics)
+	// These only need basic rate limiting
 	r.Group(func(r chi.Router) {
-		// Health check doesn't need rate limiting
 		r.Get("/health", utils.InstrumentHandler("HealthCheck", handlers.HealthCheck))
+		r.Handle("/metrics", promhttp.Handler())
 	})
-
-	// Metrics endpoint
-	r.Handle("/metrics", promhttp.Handler())
 
 	// Auth routes with stricter rate limiting
 	r.Group(func(r chi.Router) {
