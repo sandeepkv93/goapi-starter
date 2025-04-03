@@ -15,11 +15,29 @@ var (
 )
 
 func Init() {
-	// Pretty print during development
-	log.Logger = log.Output(zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.RFC3339,
-	})
+	// Create a multi-writer for both file and console output in development
+	if os.Getenv("APP_ENV") == "development" {
+		// Create or open log file
+		logFile, err := os.OpenFile("/tmp/goapi.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to open log file")
+		}
+
+		// Create a multi-writer
+		multiWriter := zerolog.MultiLevelWriter(
+			zerolog.ConsoleWriter{
+				Out:        os.Stdout,
+				TimeFormat: time.RFC3339,
+			},
+			logFile,
+		)
+
+		log.Logger = zerolog.New(multiWriter).With().Timestamp().Logger()
+	} else {
+		// In non-development, use JSON format for Loki
+		zerolog.TimeFieldFormat = time.RFC3339Nano
+		log.Logger = zerolog.New(os.Stdout).With().Timestamp().Caller().Logger()
+	}
 
 	// Set global log level
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -36,7 +54,14 @@ func Init() {
 		return short
 	}
 
-	log.Logger = log.With().Caller().Logger()
+	// Add service name for better filtering in Loki
+	log.Logger = log.With().
+		Str("service", "goapi").
+		Caller().
+		Logger()
+
+	// Initialize request logger
+	requestLogger = log.Logger
 }
 
 // SetRequestLogger sets the logger for the current request

@@ -130,8 +130,8 @@ tasks:
 
   monitoring-up:
     cmds:
-      - docker compose up -d prometheus grafana
-    desc: Start all monitoring containers
+      - docker compose up -d prometheus grafana loki promtail
+    desc: Start all monitoring containers including log collection
 
   monitoring-logs:
     cmds:
@@ -149,4 +149,11 @@ tasks:
     desc: Open Redis CLI
     vars:
       REDIS_PASSWORD:
-        sh: grep REDIS_PASSWORD .env | cut -d '=' -f2 || echo "redis" 
+        sh: grep REDIS_PASSWORD .env | cut -d '=' -f2 || echo "redis"
+
+  dev-monitoring:
+    cmds:
+      - mkdir -p /tmp/goapi_logs  # Ensure log directory exists
+      - docker compose -f docker-compose.dev.yml up -d prometheus grafana loki promtail
+      - task: run
+    desc: Run monitoring stack in Docker and API locally 

@@ -1,0 +1,34 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  boltdb:
+    directory: /loki/index
+
+  filesystem:
+    directory: /loki/chunks
+
+limits_config:
+  allow_structured_metadata: false
+  retention_period: 744h
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+
+query_scheduler:
+  max_outstanding_requests_per_tenant: 2048 
