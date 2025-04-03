@@ -7,24 +7,46 @@ import (
 )
 
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Error         string `json:"error"`
+	CorrelationID string `json:"correlation_id"`
 }
 
 type SuccessResponse struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Message       string      `json:"message"`
+	Data          interface{} `json:"data,omitempty"`
+	CorrelationID string      `json:"correlation_id"`
 }
 
-func RespondWithError(w http.ResponseWriter, code int, message string) {
+func RespondWithError(w http.ResponseWriter, r *http.Request, code int, message string) {
 	logger.Debug().
 		Int("status_code", code).
 		Str("error", message).
 		Msg("Sending error response")
 
-	RespondWithJSON(w, code, ErrorResponse{Error: message})
+	// Get correlation ID from request context
+	correlationID := GetCorrelationID(r.Context())
+
+	RespondWithJSON(w, r, code, ErrorResponse{
+		Error:         message,
+		CorrelationID: correlationID,
+	})
 }
 
-func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+func RespondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload interface{}) {
+	// If payload is a SuccessResponse or ErrorResponse, add correlation ID
+	switch v := payload.(type) {
+	case SuccessResponse:
+		if v.CorrelationID == "" {
+			v.CorrelationID = GetCorrelationID(r.Context())
+			payload = v
+		}
+	case ErrorResponse:
+		if v.CorrelationID == "" {
+			v.CorrelationID = GetCorrelationID(r.Context())
+			payload = v
+		}
+	}
+
 	response, err := json.Marshal(payload)
 	if err != nil {
 		logger.Error().

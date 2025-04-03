@@ -28,7 +28,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("path", r.URL.Path).
 				Str("remote_ip", r.RemoteAddr).
 				Msg("Missing authorization header")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Authorization header required")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Authorization header required")
 			return
 		}
 
@@ -40,7 +40,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("remote_ip", r.RemoteAddr).
 				Str("auth_header", authHeader).
 				Msg("Invalid token format")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token format")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid token format")
 			return
 		}
 
@@ -55,7 +55,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("path", r.URL.Path).
 				Msg("Error checking token blacklist")
 			// If we can't check the blacklist, fail closed for security
-			utils.RespondWithError(w, http.StatusUnauthorized, "Authentication error")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Authentication error")
 			return
 		}
 
@@ -66,7 +66,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("remote_ip", r.RemoteAddr).
 				Msg("Token is blacklisted")
 			metrics.RecordHandlerError("AuthMiddleware", "blacklisted_token")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Token has been revoked or expired. Please sign in again.")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Token has been revoked or expired. Please sign in again.")
 			return
 		}
 
@@ -81,7 +81,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("path", r.URL.Path).
 				Str("remote_ip", r.RemoteAddr).
 				Msg("Invalid token")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 
@@ -92,7 +92,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("path", r.URL.Path).
 				Str("remote_ip", r.RemoteAddr).
 				Msg("Invalid token claims")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token claims")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid token claims")
 			return
 		}
 
@@ -104,7 +104,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				Str("path", r.URL.Path).
 				Str("remote_ip", r.RemoteAddr).
 				Msg("Invalid user ID in token")
-			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token")
+			utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 

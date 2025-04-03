@@ -22,14 +22,14 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		metrics.RecordHandlerError("SignUp", "invalid_request")
 		metrics.BusinessOperations.WithLabelValues("signup", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if err := utils.ValidateStruct(req); err != nil {
 		metrics.RecordHandlerError("SignUp", "validation_error")
 		metrics.BusinessOperations.WithLabelValues("signup", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		utils.RespondWithError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -38,7 +38,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	if result := database.DB.Where("email = ?", req.Email).First(&existingUser); result.Error == nil {
 		metrics.RecordHandlerError("SignUp", "email_exists")
 		metrics.BusinessOperations.WithLabelValues("signup", "failed").Inc()
-		utils.RespondWithError(w, http.StatusConflict, "Email already exists")
+		utils.RespondWithError(w, r, http.StatusConflict, "Email already exists")
 		return
 	}
 
@@ -46,7 +46,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	if result := database.DB.Where("username = ?", req.Username).First(&existingUser); result.Error == nil {
 		metrics.RecordHandlerError("SignUp", "username_exists")
 		metrics.BusinessOperations.WithLabelValues("signup", "failed").Inc()
-		utils.RespondWithError(w, http.StatusConflict, "Username already exists")
+		utils.RespondWithError(w, r, http.StatusConflict, "Username already exists")
 		return
 	}
 
@@ -55,7 +55,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		metrics.RecordHandlerError("SignUp", "password_hash_error")
 		metrics.BusinessOperations.WithLabelValues("signup", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error processing request")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error processing request")
 		return
 	}
 
@@ -69,13 +69,13 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	if result := database.DB.Create(&user); result.Error != nil {
 		metrics.RecordHandlerError("SignUp", "database_error")
 		metrics.BusinessOperations.WithLabelValues("signup", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating user")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error creating user")
 		return
 	}
 
 	metrics.BusinessOperations.WithLabelValues("signup", "success").Inc()
 	// Return user data without password
-	utils.RespondWithJSON(w, http.StatusCreated, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusCreated, utils.SuccessResponse{
 		Message: "User created successfully",
 		Data: map[string]interface{}{
 			"id":       user.ID,
@@ -92,14 +92,14 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		metrics.RecordHandlerError("SignIn", "invalid_request")
 		metrics.BusinessOperations.WithLabelValues("signin", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if err := utils.ValidateStruct(req); err != nil {
 		metrics.RecordHandlerError("SignIn", "validation_error")
 		metrics.BusinessOperations.WithLabelValues("signin", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		utils.RespondWithError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -108,7 +108,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	if result := database.DB.Where("email = ?", req.Email).First(&user); result.Error != nil {
 		metrics.RecordHandlerError("SignIn", "user_not_found")
 		metrics.BusinessOperations.WithLabelValues("signin", "failed").Inc()
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid credentials")
+		utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
@@ -116,7 +116,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		metrics.RecordHandlerError("SignIn", "invalid_password")
 		metrics.BusinessOperations.WithLabelValues("signin", "failed").Inc()
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid credentials")
+		utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
@@ -143,7 +143,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("SignIn", "token_generation_error")
 		metrics.RecordDetailedError("SignIn", "token_generation_error", errorReason)
 		metrics.BusinessOperations.WithLabelValues("signin", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error generating tokens")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error generating tokens")
 		return
 	}
 
@@ -157,7 +157,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	metrics.BusinessOperations.WithLabelValues("signin", "success").Inc()
 
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Successfully signed in",
 		Data: map[string]interface{}{
 			"user": map[string]interface{}{
@@ -176,14 +176,14 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		metrics.RecordHandlerError("RefreshToken", "invalid_request")
 		metrics.BusinessOperations.WithLabelValues("refresh_token", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if err := utils.ValidateStruct(req); err != nil {
 		metrics.RecordHandlerError("RefreshToken", "validation_error")
 		metrics.BusinessOperations.WithLabelValues("refresh_token", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		utils.RespondWithError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -211,7 +211,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("RefreshToken", "invalid_token")
 		metrics.RecordDetailedError("RefreshToken", "invalid_token", errorReason)
 		metrics.BusinessOperations.WithLabelValues("refresh_token", "failed").Inc()
-		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid refresh token")
+		utils.RespondWithError(w, r, http.StatusUnauthorized, "Invalid refresh token")
 		return
 	}
 
@@ -237,7 +237,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("RefreshToken", "token_generation_error")
 		metrics.RecordDetailedError("RefreshToken", "token_generation_error", errorReason)
 		metrics.BusinessOperations.WithLabelValues("refresh_token", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error generating tokens")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error generating tokens")
 		return
 	}
 
@@ -250,7 +250,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("refresh_token", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Tokens refreshed successfully",
 		Data:    tokens,
 	})
@@ -264,7 +264,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	if !userIDFound || userID == "" {
 		metrics.RecordHandlerError("Logout", "user_not_found")
 		metrics.BusinessOperations.WithLabelValues("logout", "failed").Inc()
-		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
+		utils.RespondWithError(w, r, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
 
@@ -351,7 +351,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("logout", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Logged out successfully",
 	})
 }

@@ -24,7 +24,7 @@ func CreateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("CreateDummyProduct", "invalid_request")
 		metrics.RecordDetailedError("CreateDummyProduct", "invalid_request", "json_decode_error")
 		metrics.BusinessOperations.WithLabelValues("create_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -32,7 +32,7 @@ func CreateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("CreateDummyProduct", "validation_error")
 		metrics.RecordDetailedError("CreateDummyProduct", "validation_error", err.Error())
 		metrics.BusinessOperations.WithLabelValues("create_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		utils.RespondWithError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -61,7 +61,7 @@ func CreateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("CreateDummyProduct", "database_error")
 		metrics.RecordDetailedError("CreateDummyProduct", "database_error", errorReason)
 		metrics.BusinessOperations.WithLabelValues("create_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating dummy product")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error creating dummy product")
 		return
 	}
 
@@ -71,7 +71,7 @@ func CreateDummyProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("create_dummy_product", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusCreated, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusCreated, utils.SuccessResponse{
 		Message: "Dummy product created successfully",
 		Data:    dummyProduct,
 	})
@@ -94,7 +94,7 @@ func GetDummyProducts(w http.ResponseWriter, r *http.Request) {
 	if found && len(dummyProducts) > 0 {
 		logger.Info().Msg("Returning dummy products from cache")
 		metrics.BusinessOperations.WithLabelValues("get_dummy_products", "success").Inc()
-		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+		utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 			Message: "Dummy products retrieved from cache",
 			Data:    dummyProducts,
 		})
@@ -107,7 +107,7 @@ func GetDummyProducts(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("GetDummyProducts", "database_error")
 		metrics.RecordDetailedError("GetDummyProducts", "database_error", result.Error.Error())
 		metrics.BusinessOperations.WithLabelValues("get_dummy_products", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error retrieving dummy products")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error retrieving dummy products")
 		return
 	}
 
@@ -119,7 +119,7 @@ func GetDummyProducts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("get_dummy_products", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Dummy products retrieved successfully",
 		Data:    dummyProducts,
 	})
@@ -134,7 +134,7 @@ func GetDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("GetDummyProduct", "invalid_request")
 		metrics.RecordDetailedError("GetDummyProduct", "invalid_request", "missing_id")
 		metrics.BusinessOperations.WithLabelValues("get_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing dummy product ID")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Missing dummy product ID")
 		return
 	}
 
@@ -151,7 +151,7 @@ func GetDummyProduct(w http.ResponseWriter, r *http.Request) {
 	if found {
 		logger.Info().Str("id", id).Msg("Returning dummy product from cache")
 		metrics.BusinessOperations.WithLabelValues("get_dummy_product", "success").Inc()
-		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+		utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 			Message: "Dummy product retrieved from cache",
 			Data:    dummyProduct,
 		})
@@ -164,7 +164,7 @@ func GetDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("GetDummyProduct", "not_found")
 		metrics.RecordDetailedError("GetDummyProduct", "not_found", "id_"+id)
 		metrics.BusinessOperations.WithLabelValues("get_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusNotFound, "Dummy product not found")
+		utils.RespondWithError(w, r, http.StatusNotFound, "Dummy product not found")
 		return
 	}
 
@@ -174,7 +174,7 @@ func GetDummyProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("get_dummy_product", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Dummy product retrieved successfully",
 		Data:    dummyProduct,
 	})
@@ -189,7 +189,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("UpdateDummyProduct", "invalid_request")
 		metrics.RecordDetailedError("UpdateDummyProduct", "invalid_request", "missing_id")
 		metrics.BusinessOperations.WithLabelValues("update_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing dummy product ID")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Missing dummy product ID")
 		return
 	}
 
@@ -198,7 +198,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("UpdateDummyProduct", "invalid_request")
 		metrics.RecordDetailedError("UpdateDummyProduct", "invalid_request", "json_decode_error")
 		metrics.BusinessOperations.WithLabelValues("update_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -206,7 +206,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("UpdateDummyProduct", "validation_error")
 		metrics.RecordDetailedError("UpdateDummyProduct", "validation_error", err.Error())
 		metrics.BusinessOperations.WithLabelValues("update_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+		utils.RespondWithError(w, r, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -216,7 +216,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("UpdateDummyProduct", "not_found")
 		metrics.RecordDetailedError("UpdateDummyProduct", "not_found", "id_"+id)
 		metrics.BusinessOperations.WithLabelValues("update_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusNotFound, "Dummy product not found")
+		utils.RespondWithError(w, r, http.StatusNotFound, "Dummy product not found")
 		return
 	}
 
@@ -236,7 +236,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("UpdateDummyProduct", "invalid_request")
 		metrics.RecordDetailedError("UpdateDummyProduct", "invalid_request", "no_updates")
 		metrics.BusinessOperations.WithLabelValues("update_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "No updates provided")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "No updates provided")
 		return
 	}
 
@@ -244,7 +244,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("UpdateDummyProduct", "database_error")
 		metrics.RecordDetailedError("UpdateDummyProduct", "database_error", result.Error.Error())
 		metrics.BusinessOperations.WithLabelValues("update_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error updating dummy product")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error updating dummy product")
 		return
 	}
 
@@ -263,7 +263,7 @@ func UpdateDummyProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("update_dummy_product", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Dummy product updated successfully",
 		Data:    dummyProduct,
 	})
@@ -278,7 +278,7 @@ func DeleteDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("DeleteDummyProduct", "invalid_request")
 		metrics.RecordDetailedError("DeleteDummyProduct", "invalid_request", "missing_id")
 		metrics.BusinessOperations.WithLabelValues("delete_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusBadRequest, "Missing dummy product ID")
+		utils.RespondWithError(w, r, http.StatusBadRequest, "Missing dummy product ID")
 		return
 	}
 
@@ -288,7 +288,7 @@ func DeleteDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("DeleteDummyProduct", "not_found")
 		metrics.RecordDetailedError("DeleteDummyProduct", "not_found", "id_"+id)
 		metrics.BusinessOperations.WithLabelValues("delete_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusNotFound, "Dummy product not found")
+		utils.RespondWithError(w, r, http.StatusNotFound, "Dummy product not found")
 		return
 	}
 
@@ -297,7 +297,7 @@ func DeleteDummyProduct(w http.ResponseWriter, r *http.Request) {
 		metrics.RecordHandlerError("DeleteDummyProduct", "database_error")
 		metrics.RecordDetailedError("DeleteDummyProduct", "database_error", result.Error.Error())
 		metrics.BusinessOperations.WithLabelValues("delete_dummy_product", "failed").Inc()
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error deleting dummy product")
+		utils.RespondWithError(w, r, http.StatusInternalServerError, "Error deleting dummy product")
 		return
 	}
 
@@ -313,7 +313,7 @@ func DeleteDummyProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metrics.BusinessOperations.WithLabelValues("delete_dummy_product", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Dummy product deleted successfully",
 		Data:    nil,
 	})

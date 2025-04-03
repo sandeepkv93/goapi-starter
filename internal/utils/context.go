@@ -22,3 +22,14 @@ func GetAccessTokenFromContext(ctx context.Context) (string, bool) {
 	token, ok := ctx.Value("accessToken").(string)
 	return token, ok
 }
+
+// GetCorrelationID retrieves the correlation ID from the context
+func GetCorrelationID(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if correlationID, ok := ctx.Value("correlation_id").(string); ok {
+		return correlationID
+	}
+	return ""
+}

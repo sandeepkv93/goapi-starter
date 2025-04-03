@@ -24,7 +24,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 			Msg("User retrieved from context cache")
 
 		metrics.BusinessOperations.WithLabelValues("get_profile", "success").Inc()
-		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+		utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 			Message: "Profile retrieved from cache",
 			Data:    user,
 		})
@@ -36,7 +36,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		metrics.RecordHandlerError("GetProfile", "unauthorized")
 		metrics.BusinessOperations.WithLabelValues("get_profile", "failed").Inc()
-		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
+		utils.RespondWithError(w, r, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
 
@@ -49,7 +49,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 			Msg("User retrieved from Redis cache")
 
 		metrics.BusinessOperations.WithLabelValues("get_profile", "success").Inc()
-		utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+		utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 			Message: "Profile retrieved from Redis cache",
 			Data:    cachedUser,
 		})
@@ -61,7 +61,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	if result := database.DB.First(&dbUser, "id = ?", userID); result.Error != nil {
 		metrics.RecordHandlerError("GetProfile", "user_not_found")
 		metrics.BusinessOperations.WithLabelValues("get_profile", "failed").Inc()
-		utils.RespondWithError(w, http.StatusNotFound, "User not found")
+		utils.RespondWithError(w, r, http.StatusNotFound, "User not found")
 		return
 	}
 
@@ -79,7 +79,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	dbUser.ID = ""
 
 	metrics.BusinessOperations.WithLabelValues("get_profile", "success").Inc()
-	utils.RespondWithJSON(w, http.StatusOK, utils.SuccessResponse{
+	utils.RespondWithJSON(w, r, http.StatusOK, utils.SuccessResponse{
 		Message: "Profile retrieved from database",
 		Data:    dbUser,
 	})

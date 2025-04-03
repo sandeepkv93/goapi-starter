@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"goapi-starter/internal/logger"
 	"goapi-starter/internal/utils"
 	"net/http"
@@ -17,13 +18,18 @@ func CorrelationMiddleware(next http.Handler) http.Handler {
 			correlationID = uuid.New().String()
 		}
 
-		// Get user ID if available
-		userID, _ := utils.GetUserIDFromContext(r.Context())
+		// Add correlation ID to response headers
+		w.Header().Set("X-Correlation-ID", correlationID)
+
+		// Create a new context with correlation ID
+		ctx := context.WithValue(r.Context(), "correlation_id", correlationID)
 
 		// Create a new logger with correlation context
 		contextLogger := log.Logger.With().
 			Str("correlation_id", correlationID)
 
+		// Get user ID if available
+		userID, _ := utils.GetUserIDFromContext(r.Context())
 		if userID != "" {
 			contextLogger = contextLogger.Str("user_id", userID)
 		}
@@ -33,6 +39,6 @@ func CorrelationMiddleware(next http.Handler) http.Handler {
 
 		defer logger.ClearRequestLogger() // Clean up after request is done
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -40,7 +40,7 @@ func IPRateLimitMiddleware(next http.Handler) http.Handler {
 				Msg("IP rate limit exceeded")
 
 			w.Header().Set("Retry-After", strconv.FormatInt(int64(resetAfter.Seconds()), 10))
-			utils.RespondWithError(w, http.StatusTooManyRequests, "Rate limit exceeded. Please try again later.")
+			utils.RespondWithError(w, r, http.StatusTooManyRequests, "Rate limit exceeded. Please try again later.")
 			return
 		}
 
@@ -87,7 +87,7 @@ func UserRateLimitMiddleware(next http.Handler) http.Handler {
 				Msg("User rate limit exceeded")
 
 			w.Header().Set("Retry-After", strconv.FormatInt(int64(resetAfter.Seconds()), 10))
-			utils.RespondWithError(w, http.StatusTooManyRequests, "Rate limit exceeded. Please try again later.")
+			utils.RespondWithError(w, r, http.StatusTooManyRequests, "Rate limit exceeded. Please try again later.")
 			return
 		}
 
@@ -126,7 +126,7 @@ func AuthRateLimitMiddleware(next http.Handler) http.Handler {
 				Msg("Auth rate limit exceeded")
 
 			w.Header().Set("Retry-After", strconv.FormatInt(int64(resetAfter.Seconds()), 10))
-			utils.RespondWithError(w, http.StatusTooManyRequests, "Too many authentication attempts. Please try again later.")
+			utils.RespondWithError(w, r, http.StatusTooManyRequests, "Too many authentication attempts. Please try again later.")
 			return
 		}
 
