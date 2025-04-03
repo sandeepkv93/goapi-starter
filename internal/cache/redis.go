@@ -146,3 +146,20 @@ func FlushAll() error {
 	logger.Info().Msg("Successfully flushed entire cache")
 	return nil
 }
+
+// GetTTL returns the remaining time-to-live of a key
+func GetTTL(key string) (time.Duration, error) {
+	metrics.RecordCacheOperation("ttl", "default")
+	startTime := time.Now()
+	defer func() {
+		metrics.RecordCacheDuration("ttl", time.Since(startTime))
+	}()
+
+	ttl, err := RedisClient.TTL(ctx, key).Result()
+	if err != nil {
+		logger.Error().Err(err).Str("key", key).Msg("Failed to get TTL from cache")
+		return 0, err
+	}
+
+	return ttl, nil
+}

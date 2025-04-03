@@ -30,18 +30,28 @@ func SetupRouter() *chi.Mux {
 	r.Use(customMiddleware.PrometheusMiddleware)
 	r.Use(middleware.Recoverer)
 
+	// Apply IP-based rate limiting to all routes
+	r.Use(customMiddleware.IPRateLimitMiddleware)
+
+	// Public routes
+	r.Group(func(r chi.Router) {
+		// Health check doesn't need rate limiting
+		r.Get("/health", utils.InstrumentHandler("HealthCheck", handlers.HealthCheck))
+	})
+
 	// Metrics endpoint
 	r.Handle("/metrics", promhttp.Handler())
 
-	// Health check endpoint
-	r.Mount("/health", HealthRoutes())
+	// Auth routes with stricter rate limiting
+	r.Group(func(r chi.Router) {
+		r.Use(customMiddleware.AuthRateLimitMiddleware)
+		r.Mount("/api/auth", AuthRoutes())
+	})
 
-	// Public routes
-	r.Mount("/api/auth", AuthRoutes())
-
-	// Protected routes
+	// Protected routes with user-based rate limiting
 	r.Group(func(r chi.Router) {
 		r.Use(customMiddleware.AuthMiddleware)
+		r.Use(customMiddleware.UserRateLimitMiddleware)
 		r.Mount("/api/dummy-products", DummyProductRoutes())
 
 		// User routes

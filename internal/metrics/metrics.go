@@ -128,6 +128,23 @@ var (
 		},
 		[]string{"key_prefix"},
 	)
+
+	// Rate limiting metrics
+	RateLimitChecks = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "api_rate_limit_checks_total",
+			Help: "Total number of rate limit checks",
+		},
+		[]string{"limiter_type"},
+	)
+
+	RateLimitResults = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "api_rate_limit_results_total",
+			Help: "Results of rate limit checks",
+		},
+		[]string{"limiter_type", "result"},
+	)
 )
 
 // RecordRequest records metrics for an HTTP request
@@ -183,4 +200,14 @@ func RecordCacheDuration(operation string, duration time.Duration) {
 // RecordCacheSize records the size of a cached object
 func RecordCacheSize(keyPrefix string, size int) {
 	CacheSize.WithLabelValues(keyPrefix).Observe(float64(size))
+}
+
+// RecordRateLimitCheck records a rate limit check
+func RecordRateLimitCheck(limiterType string) {
+	RateLimitChecks.WithLabelValues(limiterType).Inc()
+}
+
+// RecordRateLimitResult records the result of a rate limit check
+func RecordRateLimitResult(limiterType, result string) {
+	RateLimitResults.WithLabelValues(limiterType, result).Inc()
 }
